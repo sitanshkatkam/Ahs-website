@@ -21,6 +21,14 @@
  */
 
 import { sendPoke, VapidSigner, type PushSubscriptionRecord } from './push';
+import {
+  authConfigured,
+  currentAccount,
+  handleCallback,
+  pruneSessions,
+  signOut,
+  startAuth,
+} from './auth';
 // @ts-expect-error - plain JS shared with the Node build script, no types
 import { FEED_URL, buildFeed } from '../shared/feed.js';
 
@@ -31,6 +39,9 @@ export type Env = {
   VAPID_PUBLIC_KEY: string;
   VAPID_PRIVATE_KEY: string;
   VAPID_SUBJECT: string;
+  /** Set once the Google Cloud OAuth client exists; sign-in is off until then. */
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
 };
 
 /** A device as the cron sees it. */
@@ -223,6 +234,31 @@ export default {
       });
     }
 
+    /*
+      Google sign-in. Everything here is additive — the app is fully usable
+      without an account, so each route reports itself unavailable rather than
+      erroring when the keys aren't set yet, and the UI hides the button.
+    */
+    if (url.pathname.startsWith('/api/auth/')) {
+      if (url.pathname === '/api/auth/me') {
+        // Answered even when sign-in is switched off, so the client has one
+        // shape to handle instead of two.
+        return json({
+          configured: authConfigured(env),
+          account: authConfigured(env) ? await currentAccount(request, env) : null,
+        });
+      }
+
+      if (!authConfigured(env)) return json({ error: 'sign-in not configured' }, 503);
+
+      if (url.pathname === '/api/auth/google/start') return startAuth(request, env);
+      if (url.pathname === '/api/auth/google/callback') return handleCallback(request, env);
+      if (url.pathname === '/api/auth/signout' && request.method === 'POST') {
+        return signOut(request, env);
+      }
+      return json({ error: 'not found' }, 404);
+    }
+
     // The client needs the public key to subscribe; it is public by definition.
     if (url.pathname === '/api/vapid-public-key') {
       return new Response(env.VAPID_PUBLIC_KEY, {
@@ -317,5 +353,6 @@ export async function tick(env: Env, nowMs: number): Promise<void> {
     )
       .bind(nowMs - 30 * 24 * 60 * 60 * 1000)
       .run();
+    await pruneSessions(env, nowMs);
   }
 }

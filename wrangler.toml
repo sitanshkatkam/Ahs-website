@@ -21,6 +21,15 @@ VAPID_SUBJECT = "mailto:wenaydev@gmail.com"
 # VAPID_PUBLIC_KEY is set at deploy time from .vapid.json (see npm run deploy).
 # VAPID_PRIVATE_KEY is a secret: wrangler secret put VAPID_PRIVATE_KEY
 
+# Google sign-in is off until both of these exist. The client ID is not secret
+# (it is visible in the redirect to Google), so it goes here once you have it:
+#
+#   GOOGLE_CLIENT_ID = "....apps.googleusercontent.com"
+#
+# The secret never goes in this file, which is committed:
+#
+#   npx wrangler secret put GOOGLE_CLIENT_SECRET
+
 # Subscriptions live here, one row per device. They used to be a single KV
 # value holding everyone, which meant every registration rewrote the whole
 # school's record — two students hitting subscribe in the same second could

@@ -195,7 +195,9 @@ describe('tick', () => {
     const housekeeping = fakeDB([]);
     await tick(envWith(housekeeping.db), Date.parse('2026-08-20T00:30:00Z'));
     const prune = writes(housekeeping.executed);
-    expect(prune).toHaveLength(1);
-    expect(prune[0].sql).toContain('next_at IS NULL');
+    // Two sweeps share the daily slot: abandoned devices and expired sessions.
+    expect(prune).toHaveLength(2);
+    expect(prune.map((p) => p.sql).join(' ')).toContain('next_at IS NULL');
+    expect(prune.map((p) => p.sql).join(' ')).toContain('DELETE FROM sessions');
   });
 });

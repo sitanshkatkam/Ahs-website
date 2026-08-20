@@ -18,6 +18,7 @@ import {
 import { plannedTimes, pushActive, pushConfigured } from '../lib/push';
 import { InstallSettingsRow, useInstallState } from '../components/InstallPrompt';
 import { SharePanel, shareUrl } from '../components/SharePanel';
+import { AccountSection } from '../components/AccountSection';
 import { Collapse } from '../components/Collapse';
 import { BUILD_TIME, checkForUpdate } from '../lib/appUpdate';
 import {
@@ -60,6 +61,9 @@ export function SettingsScreen({
           <span className="accent-blue shrink-0 text-sm font-medium text-accent">Start</span>
         </button>
       </Section>
+
+      {/* Renders nothing until the Google keys are set on the Worker. */}
+      <AccountSection />
 
       <ClassesSection settings={settings} update={update} />
       <ExtraPeriodsSection settings={settings} update={update} />
@@ -143,12 +147,12 @@ function CreditsCard() {
         <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-faint">
           Made by
         </p>
-        <p className="mt-1.5 text-lg font-semibold leading-snug">Vihaan Shah</p>
-        <p className="mt-1.5 text-sm leading-relaxed text-dim">
-          with inspiration from Sitansh Katkam
+        <p className="mt-1.5 text-lg font-semibold leading-snug">
+          Vihaan Shah
           <br />
-          using Claude Code
+          Sitansh Katkam
         </p>
+        <p className="mt-1.5 text-sm leading-relaxed text-dim">using Claude Code</p>
         <p className="mt-3 border-t border-app pt-3 text-xs text-faint">
           Built for American High School · {SCHOOL_YEAR.label}
         </p>
