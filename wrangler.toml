@@ -17,18 +17,17 @@ crons = ["* * * * *"]
 [vars]
 VAPID_PUBLIC_KEY = "BNu7sDx1aarCJbiLkSrlZ3pmS6-INQ26JKMw5XKoB4pXg7VKJj-MoaUwCllzqkcAJJuAZ8eWcekbLSDjES2w8xM"
 VAPID_SUBJECT = "mailto:wenaydev@gmail.com"
+GOOGLE_CLIENT_ID = "356065144650-j20ou04h80rg83c6fj7fjgn7j5820kuh.apps.googleusercontent.com"
 
 # VAPID_PUBLIC_KEY is set at deploy time from .vapid.json (see npm run deploy).
 # VAPID_PRIVATE_KEY is a secret: wrangler secret put VAPID_PRIVATE_KEY
 
-# Google sign-in is off until both of these exist. The client ID is not secret
-# (it is visible in the redirect to Google), so it goes here once you have it:
-#
-#   GOOGLE_CLIENT_ID = "....apps.googleusercontent.com"
-#
-# The secret never goes in this file, which is committed:
+# Google sign-in. The client ID is not a secret — it is visible in the redirect
+# to Google on every sign-in — so it lives here. The matching secret is set with
 #
 #   npx wrangler secret put GOOGLE_CLIENT_SECRET
+#
+# and must never be written into this file, which is committed.
 
 # Subscriptions live here, one row per device. They used to be a single KV
 # value holding everyone, which meant every registration rewrote the whole
