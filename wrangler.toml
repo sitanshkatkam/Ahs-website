@@ -7,6 +7,14 @@ compatibility_date = "2026-04-16"
 directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
+# Without this the asset layer answers browser navigations before the Worker
+# ever runs, and single-page-application handling turns any unmatched path into
+# index.html with a 200. That is right for /calendar and wrong for /api: the
+# OAuth callback is a top-level navigation, so Google's redirect was landing on
+# the app shell and the code was never exchanged. It only showed up in a real
+# browser — curl sends Accept: */*, which falls through to the Worker and looks
+# perfectly healthy.
+run_worker_first = [ "/api/*" ]
 
 # One minute is the finest granularity Cloudflare offers, and it's what a
 # "5 minutes before class" alert needs. Vercel's free tier caps cron at once

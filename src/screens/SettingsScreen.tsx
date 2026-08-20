@@ -62,9 +62,6 @@ export function SettingsScreen({
         </button>
       </Section>
 
-      {/* Renders nothing until the Google keys are set on the Worker. */}
-      <AccountSection />
-
       <ClassesSection settings={settings} update={update} />
       <ExtraPeriodsSection settings={settings} update={update} />
 
@@ -81,6 +78,10 @@ export function SettingsScreen({
       <GpaSection settings={settings} update={update} />
       <AppearanceSection settings={settings} update={update} />
       <OverridesSection settings={settings} update={update} />
+
+      {/* Last: signing out is rare and easy to hit by accident, so it lives
+          where nobody scrolls by mistake. Renders nothing if sign-in is off. */}
+      <AccountSection />
 
       <p className="pt-8 text-center text-xs text-faint">
         Bell times from the official FUSD schedule.
