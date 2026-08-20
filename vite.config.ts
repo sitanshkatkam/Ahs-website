@@ -2,10 +2,17 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import pkg from './package.json' with { type: 'json' };
 
 export default defineConfig({
-  // Lets Settings show which build is actually running on a phone.
-  define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString()) },
+  define: {
+    // Lets Settings show which build is actually running on a phone.
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    // The share URL is baked in rather than read from window.location, so a
+    // QR or a copied link is the public address even when the app is being
+    // used from localhost or reached through some other hostname.
+    __APP_URL__: JSON.stringify(pkg.appUrl),
+  },
   plugins: [
     react(),
     tailwindcss(),

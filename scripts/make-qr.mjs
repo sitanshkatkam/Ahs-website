@@ -1,7 +1,8 @@
 /**
  * Generate the share QR code for the deployed app.
  *
- *   node scripts/make-qr.mjs https://your-app.vercel.app
+ *   node scripts/make-qr.mjs            # uses appUrl from package.json
+ *   node scripts/make-qr.mjs <url>      # or an explicit one
  *
  * Writes share/qr.svg (scales to any print size) and share/qr.png.
  */
@@ -10,7 +11,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import QRCode from 'qrcode';
 
-const url = process.argv[2];
+// Same source of truth the app compiles in, so the printed code and the
+// in-app share sheet can never drift apart. An argument still overrides it.
+const pkg = JSON.parse(await fs.readFile(new URL('../package.json', import.meta.url), 'utf8'));
+const url = process.argv[2] ?? pkg.appUrl;
 
 if (!url) {
   console.error('Usage: node scripts/make-qr.mjs <url>');

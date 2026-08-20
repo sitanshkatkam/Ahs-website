@@ -9,10 +9,17 @@ import { Sheet } from './Sheet';
  * bundle for one fixed URL. It's precached, so this works with no signal.
  */
 
-/** Where the app actually lives, so a QR shown on localhost still points at prod. */
+/**
+ * The address to hand out, from package.json via vite's define.
+ *
+ * Deliberately not window.location.origin. That returned whatever host the app
+ * happened to be open on — localhost during development, and the long
+ * workers.dev address in production — so the QR and the copied link disagreed
+ * with the posters. A fixed short link also survives the app moving to a custom
+ * domain later without reprinting anything.
+ */
 export function shareUrl(): string {
-  if (typeof window === 'undefined') return '';
-  return window.location.origin;
+  return typeof __APP_URL__ === 'string' && __APP_URL__ ? __APP_URL__ : '';
 }
 
 const SHARE_TEXT =
