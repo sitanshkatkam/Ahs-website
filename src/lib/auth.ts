@@ -94,3 +94,56 @@ export function signInMessage(result: string): string | null {
       return 'Sign-in failed. Try again.';
   }
 }
+
+/**
+ * Delete the account on the server. Returns false if it didn't happen, so the
+ * caller doesn't erase the phone on the strength of a request that failed.
+ */
+export async function deleteAccount(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/auth/delete', {
+      method: 'POST',
+      credentials: 'same-origin',
+    });
+    if (!res.ok) return false;
+    const body = (await res.json()) as { ok?: boolean };
+    return body.ok === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Everything the app has ever written on this device.
+ *
+ * "Delete my account" has to mean it. Almost none of a student's data is in
+ * the account — classes, grades, assignments and settings never left the
+ * phone — so deleting only the server row would leave all of it sitting here
+ * and make the promise a lie.
+ *
+ * Listed explicitly rather than clearing localStorage wholesale, so this
+ * cannot quietly take something a future feature stores alongside it.
+ */
+const LOCAL_KEYS = [
+  'ahs-schedule:settings',
+  'ahs-schedule:feed',
+  'ahs-schedule:fired',
+  'ahs-schedule:uploaded:d1',
+];
+
+export async function eraseLocalData(): Promise<void> {
+  for (const key of LOCAL_KEYS) {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      /* private mode */
+    }
+  }
+
+  // The mirrored alert plan and the fired-notification ids live here.
+  try {
+    if (typeof indexedDB !== 'undefined') indexedDB.deleteDatabase('ahs-schedule');
+  } catch {
+    /* ignore */
+  }
+}

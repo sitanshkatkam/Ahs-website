@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchAuthState, signIn, signOut, type AuthState } from '../lib/auth';
 import { GoogleMark } from './GoogleMark';
+import { DeleteAccountSection } from './DeleteAccountSection';
 
 /**
  * The account row at the foot of Settings.
@@ -44,6 +45,7 @@ export function AccountSection() {
   }
 
   return (
+    <>
     <Frame>
       <div className="flex items-center gap-3 p-4">
         {account.picture ? (
@@ -102,6 +104,10 @@ export function AccountSection() {
         </button>
       )}
     </Frame>
+
+    {/* Last of everything, and only when there is an account to delete. */}
+    <DeleteAccountSection account={account} />
+    </>
   );
 }
 

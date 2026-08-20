@@ -333,6 +333,62 @@ export async function signOut(request: Request, env: AuthEnv): Promise<Response>
   });
 }
 
+/**
+ * Erase the account itself.
+ *
+ * Sessions are deleted explicitly rather than left to the ON DELETE CASCADE on
+ * the foreign key: SQLite only enforces foreign keys when the connection asks
+ * it to, so relying on the cascade here risks orphaned session rows that would
+ * still authenticate against a user who no longer exists.
+ *
+ * Only the server half is removed here. Classes, grades and settings never left
+ * the phone, so the client erases those itself — see eraseLocalData.
+ */
+export async function deleteAccount(request: Request, env: AuthEnv): Promise<Response> {
+  const token = readCookie(request, SESSION_COOKIE);
+  const cleared = {
+    'content-type': 'application/json',
+    'Set-Cookie': cookie(SESSION_COOKIE, '', 0),
+  };
+
+  if (!token) {
+    return new Response(JSON.stringify({ ok: false, error: 'not signed in' }), {
+      status: 401,
+      headers: cleared,
+    });
+  }
+
+  const hash = await sha256(token);
+  const row = await env.DB.prepare(
+    'SELECT user_id FROM sessions WHERE token_hash = ?1 AND expires > ?2',
+  )
+    .bind(hash, Date.now())
+    .first<{ user_id: string }>();
+
+  if (!row) {
+    /*
+      A cookie that matches no live session — expired, or simply wrong. The
+      tempting answer is "ok, nothing to delete", but the client erases the
+      phone's classes and grades on the strength of this reply. Reporting
+      success for a deletion that did not happen would destroy that data while
+      leaving the account alive: the exact opposite of what was asked for.
+    */
+    return new Response(JSON.stringify({ ok: false, error: 'session expired' }), {
+      status: 401,
+      headers: cleared,
+    });
+  }
+
+  // Every session, not just this one: deleting the account has to sign out the
+  // student's other devices too, or the account outlives its own deletion.
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM sessions WHERE user_id = ?1').bind(row.user_id),
+    env.DB.prepare('DELETE FROM users WHERE id = ?1').bind(row.user_id),
+  ]);
+
+  return new Response(JSON.stringify({ ok: true }), { headers: cleared });
+}
+
 /** Expired sessions are dead weight; the daily housekeeping tick sweeps them. */
 export async function pruneSessions(env: AuthEnv, nowMs: number): Promise<void> {
   await env.DB.prepare('DELETE FROM sessions WHERE expires < ?1').bind(nowMs).run();

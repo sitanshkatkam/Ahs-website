@@ -24,6 +24,7 @@ import { sendPoke, VapidSigner, type PushSubscriptionRecord } from './push';
 import {
   authConfigured,
   currentAccount,
+  deleteAccount,
   handleCallback,
   pruneSessions,
   signOut,
@@ -255,6 +256,9 @@ export default {
       if (url.pathname === '/api/auth/google/callback') return handleCallback(request, env);
       if (url.pathname === '/api/auth/signout' && request.method === 'POST') {
         return signOut(request, env);
+      }
+      if (url.pathname === '/api/auth/delete' && request.method === 'POST') {
+        return deleteAccount(request, env);
       }
       return json({ error: 'not found' }, 404);
     }
