@@ -1,0 +1,274 @@
+@import 'tailwindcss';
+
+/*
+  One accent per schedule type, everything else greyscale. The palette is
+  defined light-first on :root, then overridden for dark — both by the OS
+  preference and by an explicit data-theme, so the in-app toggle wins either way.
+*/
+
+@theme {
+  /*
+    Registering the accent as a Tailwind colour, not just a raw CSS variable.
+    `bg-accent` used to be a hand-written class, which meant Tailwind couldn't
+    build variants of it — `peer-checked:bg-accent` and `hover:bg-accent`
+    silently generated nothing, so toggles never turned on visually.
+
+    The fallback matters: --accent is set by the .accent-* scope classes, so
+    anything rendered outside one would otherwise resolve to nothing.
+  */
+  --color-accent: var(--accent, var(--accent-blue));
+
+  --font-sans:
+    'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', sans-serif;
+}
+
+/*
+  Plain light values first, as a fallback for anything that doesn't understand
+  light-dark(). Browsers that do understand it take the block below.
+*/
+:root {
+  --bg: #fbfbfd;
+  --surface: #ffffff;
+  --surface-2: #f2f3f6;
+  --border: #e7e8ee;
+  --text: #16171b;
+  --text-dim: #63666f;
+  --text-faint: #6e727b;
+
+  --accent-blue: #2b6cb0;
+  --accent-green: #2c7a51;
+  --accent-amber: #a8630f;
+  --accent-violet: #7048c8;
+  --accent-rose: #c1385f;
+
+  --ring-track: #e7e8ee;
+}
+
+/*
+  One definition per token instead of the same dark palette written out twice —
+  once for the media query and once for the manual toggle. `color-scheme` is
+  what light-dark() reads, so flipping it below is all the theme switch needs to
+  do. It also fixes native controls: the date picker and selects in Settings now
+  follow the theme instead of always rendering light.
+
+  The dark end is deliberately lifted off pure black — nearer a dark slate than
+  an OLED void, which reads far softer at night.
+*/
+:root {
+  color-scheme: light dark;
+
+  --bg: light-dark(#fbfbfd, #191c22);
+  --surface: light-dark(#ffffff, #212630);
+  --surface-2: light-dark(#f2f3f6, #2a3038);
+  --border: light-dark(#e7e8ee, #353b47);
+  --text: light-dark(#16171b, #f3f4f6);
+  --text-dim: light-dark(#63666f, #a8aeba);
+  /* Light-mode accents run darker than their dark-mode twins: the same hue
+     that reads fine on a dark surface fails contrast on a white one. */
+  --text-faint: light-dark(#6e727b, #878e9a);
+
+  /* Hues are spread at least 48 degrees apart. Block and Six Period are the two
+     you see most, so they sit on opposite sides of the wheel (green vs blue)
+     rather than the near-identical blue/violet they used to be. */
+  --accent-blue: light-dark(#2b6cb0, #69a6f2);
+  --accent-green: light-dark(#2c7a51, #4fc98b);
+  --accent-amber: light-dark(#a8630f, #eda94f);
+  --accent-violet: light-dark(#7048c8, #b096f2);
+  --accent-rose: light-dark(#c1385f, #fb7d9f);
+
+  --ring-track: light-dark(#e7e8ee, #353b47);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/*
+  index.html sets viewport-fit=cover and black-translucent, which deliberately
+  extends the app under the status bar and home indicator. That only looks
+  right if the layout pays the insets back — otherwise the header sits under
+  an iPhone's notch. These are 0 on hardware without cutouts, so it costs
+  Android nothing.
+*/
+.safe-top { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+/* Floating nav: clear the home indicator *and* leave a visible gap below. */
+.float-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 0.6rem); }
+.safe-x {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  /* No webfont is bundled, so this resolves to SF on iOS and Roboto on
+     Android — native type on both without shipping a font file. */
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+/*
+  Android Chrome paints a grey box over any tapped element, which reads as a
+  web page rather than an app. Suppressing it means supplying our own press
+  feedback, below — otherwise taps feel dead.
+*/
+button,
+a,
+label,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role='button'] {
+  touch-action: manipulation; /* no 300ms double-tap-zoom delay */
+}
+
+/* Labels and headings shouldn't turn into a text selection on a long press. */
+h1,
+h2,
+h3,
+button,
+label,
+nav {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/*
+  Press feedback, replacing what we just turned off. Scale rather than colour
+  so it reads the same against every accent, and only on devices that actually
+  tap — a mouse hover already has its own affordance.
+*/
+@media (hover: none) {
+  button:active,
+  [role='button']:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+  }
+}
+
+button,
+[role='button'] {
+  transition:
+    transform 90ms ease,
+    opacity 90ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+/*
+  These sit inside @layer utilities on purpose. Unlayered CSS beats every
+  layered rule regardless of specificity, so as plain rules they silently
+  overrode Tailwind's own utilities — `peer-checked:bg-accent` on a toggle could
+  never win against the `bg-surface-2` on the same element, so the switch stayed
+  grey when it was on. Inside the layer, normal specificity applies again.
+*/
+@layer utilities {
+  .bg-app { background: var(--bg); }
+  .bg-surface { background: var(--surface); }
+  .bg-surface-2 { background: var(--surface-2); }
+  .text-main { color: var(--text); }
+  .text-dim { color: var(--text-dim); }
+  .text-faint { color: var(--text-faint); }
+  .border-app { border-color: var(--border); }
+}
+
+.accent-blue { --accent: var(--accent-blue); }
+.accent-violet { --accent: var(--accent-violet); }
+.accent-amber { --accent: var(--accent-amber); }
+.accent-rose { --accent: var(--accent-rose); }
+.accent-green { --accent: var(--accent-green); }
+
+/* Tabular figures keep the countdown from jittering as digits change. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/*
+  Motion vocabulary. Two rules kept throughout: movement is small (8-12px) and
+  fast (under 300ms), and it always explains something — where a panel came
+  from, what just changed. Nothing moves for decoration.
+*/
+
+/* Content arriving: a short rise, not a slide. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* For a banner that pushes into the layout rather than overlaying it. */
+@keyframes expand-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  `backwards`, not `both`. With `both` the final keyframe stays applied, leaving
+  transform as an identity matrix rather than `none` — and any transform makes
+  descendants' `position: fixed` resolve against this element instead of the
+  viewport. `backwards` still applies the "from" state before the animation
+  runs, so there's no flash, but nothing lingers afterwards.
+*/
+.animate-rise {
+  animation: rise-in 260ms cubic-bezier(0.32, 0.72, 0, 1) backwards;
+}
+
+.animate-fade {
+  animation: fade-in 200ms ease backwards;
+}
+
+.animate-expand {
+  animation: expand-in 300ms cubic-bezier(0.32, 0.72, 0, 1) backwards;
+}
+
+/*
+  Everything above is an enhancement, so it all collapses to nothing here.
+  `animation: none` rather than a 0.01ms duration, so `both` fill-mode can't
+  strand an element at its "from" state (invisible).
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,280 @@
+{
+  "generatedAt": "2026-08-15T04:08:31.436Z",
+  "source": "American High School — Academics (public Google Calendar)",
+  "schoolYear": "2026-08-01..2027-06-30",
+  "scheduleOverrides": [
+    {
+      "date": "2026-08-11",
+      "scheduleId": "regular"
+    },
+    {
+      "date": "2026-08-12",
+      "scheduleId": "regular"
+    },
+    {
+      "date": "2026-08-13",
+      "scheduleId": "regular"
+    },
+    {
+      "date": "2026-08-14",
+      "scheduleId": "rally"
+    },
+    {
+      "date": "2026-08-24",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2026-08-25",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2026-08-26",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2026-08-27",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2026-08-28",
+      "scheduleId": "minimum"
+    },
+    {
+      "date": "2026-10-05",
+      "scheduleId": "rally"
+    },
+    {
+      "date": "2026-10-06",
+      "scheduleId": "rallyBlockOdd"
+    },
+    {
+      "date": "2026-10-07",
+      "scheduleId": "rallyBlockEven"
+    },
+    {
+      "date": "2026-10-08",
+      "scheduleId": "rallyBlockOdd"
+    },
+    {
+      "date": "2026-10-09",
+      "scheduleId": "rallyBlockEven"
+    },
+    {
+      "date": "2026-10-22",
+      "scheduleId": "minimum"
+    },
+    {
+      "date": "2026-11-09",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2026-11-10",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2026-11-16",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2026-11-17",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2026-11-18",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2026-11-19",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2026-12-14",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2026-12-15",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2026-12-16",
+      "scheduleId": "finalsDay1"
+    },
+    {
+      "date": "2026-12-17",
+      "scheduleId": "finalsDay2"
+    },
+    {
+      "date": "2026-12-18",
+      "scheduleId": "finalsDay3"
+    },
+    {
+      "date": "2027-02-01",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2027-02-02",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2027-02-03",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2027-02-04",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2027-02-05",
+      "scheduleId": "minimum"
+    },
+    {
+      "date": "2027-02-08",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2027-02-09",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2027-02-10",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2027-02-11",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2027-03-08",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2027-03-09",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2027-03-10",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2027-03-11",
+      "scheduleId": "rallyBlockEven"
+    },
+    {
+      "date": "2027-03-22",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2027-03-23",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2027-03-24",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2027-03-25",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2027-04-16",
+      "scheduleId": "rallyBlockEven"
+    },
+    {
+      "date": "2027-05-21",
+      "scheduleId": "rallyBlockEven"
+    },
+    {
+      "date": "2027-05-24",
+      "scheduleId": "blockOdd"
+    },
+    {
+      "date": "2027-05-25",
+      "scheduleId": "blockEven"
+    },
+    {
+      "date": "2027-05-26",
+      "scheduleId": "finalsDay1"
+    },
+    {
+      "date": "2027-05-27",
+      "scheduleId": "finalsDay2"
+    },
+    {
+      "date": "2027-05-28",
+      "scheduleId": "finalsDay3"
+    },
+    {
+      "date": "2027-06-01",
+      "scheduleId": "minimum"
+    }
+  ],
+  "events": [
+    {
+      "date": "2026-08-03",
+      "title": "Maze Day",
+      "category": "academic",
+      "time": "8:00 AM"
+    },
+    {
+      "date": "2026-08-04",
+      "title": "Maze Day",
+      "category": "academic",
+      "time": "8:00 AM"
+    },
+    {
+      "date": "2026-08-11",
+      "title": "First Day of School",
+      "category": "academic"
+    },
+    {
+      "date": "2026-08-14",
+      "title": "Welcome Back Rally",
+      "category": "social"
+    },
+    {
+      "date": "2026-08-21",
+      "title": "Ice Cream Social - Outside of MPR",
+      "category": "social"
+    },
+    {
+      "date": "2026-10-08",
+      "title": "Spirit Week Night Rally",
+      "category": "social"
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Homecoming Dance",
+      "category": "social"
+    },
+    {
+      "date": "2026-12-10",
+      "title": "Winter Concert",
+      "category": "arts"
+    },
+    {
+      "date": "2027-03-04",
+      "title": "Pops Concert",
+      "category": "arts"
+    },
+    {
+      "date": "2027-04-28",
+      "title": "AAA Concert",
+      "category": "arts"
+    },
+    {
+      "date": "2027-05-13",
+      "title": "Final Concert",
+      "category": "arts"
+    },
+    {
+      "date": "2027-06-01",
+      "title": "Last Day of School",
+      "category": "academic"
+    },
+    {
+      "date": "2027-06-18",
+      "title": "Juneteenth",
+      "category": "other"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+name = "ahs-schedule"
+main = "worker/index.ts"
+compatibility_date = "2026-04-16"
+
+# The built PWA. Anything the Worker doesn't handle as /api/* is served from here.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# One minute is the finest granularity Cloudflare offers, and it's what a
+# "5 minutes before class" alert needs. Vercel's free tier caps cron at once
+# per day, which is why the backend lives here.
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+VAPID_PUBLIC_KEY = "BNu7sDx1aarCJbiLkSrlZ3pmS6-INQ26JKMw5XKoB4pXg7VKJj-MoaUwCllzqkcAJJuAZ8eWcekbLSDjES2w8xM"
+VAPID_SUBJECT = "mailto:wenaydev@gmail.com"
+
+# VAPID_PUBLIC_KEY is set at deploy time from .vapid.json (see npm run deploy).
+# VAPID_PRIVATE_KEY is a secret: wrangler secret put VAPID_PRIVATE_KEY
+
+# Subscriptions live here, one row per device. They used to be a single KV
+# value holding everyone, which meant every registration rewrote the whole
+# school's record — two students hitting subscribe in the same second could
+# lose each other's alarms, and the free tier's 1,000 KV writes a day put a
+# ceiling of a couple of hundred users on the app.
+[[d1_databases]]
+binding = "DB"
+database_name = "ahs-schedule"
+database_id = "0a98f775-b154-4d90-9505-6f600636c42e"
+migrations_dir = "migrations"
+
+# KV keeps the calendar feed cache, which is what it's actually good at: one
+# key, read constantly, written once an hour for everybody.
+[[kv_namespaces]]
+binding = "SUBS"
+id = "1b2a657c8d2e41f3b7a81eee3f2f3865"

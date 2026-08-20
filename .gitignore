@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output — `npm run deploy` regenerates this before publishing.
+dist/
+*.tsbuildinfo
+
+# SECRETS — do not commit.
+# .vapid.json holds the private key that signs every push notification. Anyone
+# with it can send notifications to every installed copy of the app. If it ever
+# leaks, generate a new pair and redeploy; every device re-subscribes on open.
+.vapid.json
+
+# Only holds the VAPID *public* key, which ships in the client bundle anyway,
+# but .env is the wrong habit to start. See .env.example.
+.env
+.env.local
+.dev.vars
+
+# Wrangler local state and local D1 database
+.wrangler/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

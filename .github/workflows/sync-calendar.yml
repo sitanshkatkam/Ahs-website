@@ -1,0 +1,45 @@
+name: Sync school calendar
+
+# Pulls American High's public calendar feed and commits the result if it
+# changed. The tests run first: src/lib/resolveDay.test.ts asserts the feed
+# still agrees with the hand-verified schedule data, so a disagreement fails
+# the run instead of silently shipping a wrong bell schedule.
+
+on:
+  schedule:
+    - cron: '15 10 * * *' # 03:15 America/Los_Angeles (04:15 during PDT)
+  workflow_dispatch: # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Pull the calendar feed
+        run: npm run sync:calendar
+
+      - name: Check the feed still agrees with the verified schedule
+        run: npm test
+
+      - name: Commit if anything changed
+        run: |
+          if git diff --quiet -- src/data/synced.json; then
+            echo "No calendar changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/synced.json
+          git commit -m "Sync school calendar"
+          git push
