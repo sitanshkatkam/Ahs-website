@@ -14,7 +14,8 @@
     "qr": "node scripts/make-qr.mjs",
     "sync:calendar": "node scripts/sync-calendar.mjs",
     "deploy": "node scripts/deploy.mjs",
-    "icons": "node scripts/make-icons.mjs"
+    "icons": "node scripts/make-icons.mjs",
+    "stats": "node scripts/stats.mjs"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
