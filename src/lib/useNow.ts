@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { RESUME_EVENTS } from './resume';
 
 /**
  * A ticking clock that cannot get stuck.
@@ -26,12 +27,9 @@ import { useEffect, useState } from 'react';
 /** Backgrounded: stay alive, but cheaply. Also the worst-case heal time. */
 export const HIDDEN_INTERVAL_MS = 15_000;
 
-/**
- * Anything that might mean "the app is in front of the user again". They
- * overlap heavily and that's the point — no single one of them is reliable
- * across iOS standalone, Android Chrome, and bfcache.
- */
-export const RESUME_EVENTS = ['visibilitychange', 'pageshow', 'focus', 'resume', 'online'];
+// Shared with the update watcher, which needs exactly the same signals for
+// exactly the same reason. See resume.ts.
+export { RESUME_EVENTS };
 
 export type ClockHost = {
   isHidden: () => boolean;
