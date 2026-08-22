@@ -7,12 +7,13 @@
  * than text on purpose: a font would render differently depending on what's
  * installed and can vanish entirely when rasterized headlessly.
  *
- * Three shapes come out of this, and the differences matter:
+ * Four shapes come out of this, and the differences matter:
  *   - rounded square  : favicon and the standard PWA icons
  *   - full bleed      : maskable, where the OS crops to its own shape, so the
  *                       art has to sit inside the inner ~80% safe zone
  *   - square          : apple-touch-icon, because iOS applies its own rounding
  *                       and pre-rounded corners would be masked twice
+ *   - badge           : alpha only, see below
  */
 
 import fs from 'node:fs';
@@ -43,6 +44,27 @@ const ahs = `
   </g>`;
 
 /**
+ * The notification badge: the small glyph Android puts in the status bar.
+ *
+ * Alpha only, and that is the whole point. Android discards a badge's colours
+ * and renders whatever is opaque, so an image with a filled background arrives
+ * as a solid white rectangle — which is exactly what using the app icon here
+ * produced. No background rect, therefore, and the art is drawn in white
+ * purely so it is visible if anything ever previews it uncropped.
+ *
+ * Just the eagle. At 24dp the AHS lettering is three illegible smudges, and a
+ * badge that reads as a blob is worse than one that reads as a bird.
+ */
+function badgeSvg() {
+  const white = eagle.replace(EAGLE, '#ffffff');
+  // The eagle occupies roughly x 49-463, y 117-428 of the 512 box, so it is
+  // scaled up and re-centred to actually fill the badge.
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <g transform="translate(256,256) scale(1.12) translate(-256,-272)">${white}</g>
+</svg>`;
+}
+
+/**
  * @param {'rounded'|'bleed'|'square'} shape
  * @param {number} scale art scale; maskable shrinks into the safe zone
  */
@@ -70,3 +92,4 @@ png(svg('rounded'), 512, 'icon-512.png');
 // 0.78 keeps the art clear of whatever shape Android crops to.
 png(svg('bleed', 0.78), 512, 'icon-maskable-512.png');
 png(svg('square'), 180, 'apple-touch-icon.png');
+png(badgeSvg(), 96, 'badge-96.png');

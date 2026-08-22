@@ -98,7 +98,9 @@ async function handlePush(): Promise<void> {
     body: next.body,
     tag: next.id,
     icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    // Alpha-only silhouette. Android discards a badge's colours and renders
+    // whatever is opaque, so the app icon here became a solid white square.
+    badge: '/badge-96.png',
     // Marks this as alerting rather than silent, which is part of how Android
     // decides whether a paired watch gets woken.
     vibrate: [200, 100, 200],

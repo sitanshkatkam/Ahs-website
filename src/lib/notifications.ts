@@ -234,7 +234,9 @@ async function show(title: string, body: string, tag: string): Promise<void> {
       body,
       tag,
       icon: '/icon-192.png',
-      badge: '/icon-192.png',
+      // Alpha-only silhouette. Android discards a badge's colours and renders
+      // whatever is opaque, so the app icon here became a solid white square.
+      badge: '/badge-96.png',
       // Explicitly an alerting notification. Android decides whether a paired
       // watch is worth waking partly on this; a notification that asks for no
       // vibration can be delivered silently and never reach the wrist.
