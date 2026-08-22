@@ -99,7 +99,10 @@ async function handlePush(): Promise<void> {
     tag: next.id,
     icon: '/icon-192.png',
     badge: '/icon-192.png',
-  });
+    // Marks this as alerting rather than silent, which is part of how Android
+    // decides whether a paired watch gets woken.
+    vibrate: [200, 100, 200],
+  } as NotificationOptions);
 }
 
 /** Ask any open tab to recompute the plan and re-upload its alarms. */

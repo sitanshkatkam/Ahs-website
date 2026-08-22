@@ -235,7 +235,11 @@ async function show(title: string, body: string, tag: string): Promise<void> {
       tag,
       icon: '/icon-192.png',
       badge: '/icon-192.png',
-    });
+      // Explicitly an alerting notification. Android decides whether a paired
+      // watch is worth waking partly on this; a notification that asks for no
+      // vibration can be delivered silently and never reach the wrist.
+      vibrate: [200, 100, 200],
+    } as NotificationOptions);
   } catch {
     // Service worker not ready (dev server, private mode). Nothing to do.
   }
@@ -310,6 +314,17 @@ export class NotificationScheduler {
 /** Used by the Settings debug button to prove the whole path works. */
 export async function fireTestNotification(): Promise<boolean> {
   if (permission() !== 'granted') return false;
-  await show('Test alert', 'Notifications are working. This is the only one like it.', 'test');
+  /*
+    A fresh tag every time, which matters more than it looks. A notification
+    reusing an existing tag *replaces* it silently — no sound, no vibration,
+    and nothing pushed to a paired watch. With a fixed tag only the first test
+    ever alerted, so anyone tapping this repeatedly to debug a watch was being
+    told, quite convincingly, that notifications were broken.
+  */
+  await show(
+    'Test alert',
+    'Notifications are working. This is the only one like it.',
+    `test-${Date.now()}`,
+  );
   return true;
 }
