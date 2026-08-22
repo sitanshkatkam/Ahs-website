@@ -7,17 +7,6 @@
 */
 
 @theme {
-  /*
-    Registering the accent as a Tailwind colour, not just a raw CSS variable.
-    `bg-accent` used to be a hand-written class, which meant Tailwind couldn't
-    build variants of it — `peer-checked:bg-accent` and `hover:bg-accent`
-    silently generated nothing, so toggles never turned on visually.
-
-    The fallback matters: --accent is set by the .accent-* scope classes, so
-    anything rendered outside one would otherwise resolve to nothing.
-  */
-  --color-accent: var(--accent, var(--accent-blue));
-
   --font-sans:
     'Inter var', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
     'Helvetica Neue', sans-serif;
@@ -187,6 +176,38 @@ button,
   .text-dim { color: var(--text-dim); }
   .text-faint { color: var(--text-faint); }
   .border-app { border-color: var(--border); }
+}
+
+/*
+  The accent utilities, and why they are written by hand rather than declared
+  as a colour in @theme.
+
+  @theme emits its variables onto :root. Declaring
+  `--color-accent: var(--accent, var(--accent-blue))` there means the var() is
+  substituted *at :root*, where --accent is not set — so it resolves to the blue
+  fallback once, and that already-resolved blue inherits into every element.
+  A `.accent-green` further down the tree then has nothing left to influence:
+  the value it wants to change was computed before it existed. That is what
+  turned every dot on the calendar the same colour.
+
+  @utility keeps the var() in the declaration itself, so it resolves against
+  whichever .accent-* scope the element actually sits in. It is also the right
+  home for these rather than @layer utilities: a plain layered class cannot
+  have variants generated for it, which is the trap that made an earlier
+  `peer-checked:bg-accent` silently produce nothing. Nothing uses a variant of
+  these today — the toggles set the class from React state — but writing them
+  as utilities means reaching for one later just works.
+*/
+@utility bg-accent {
+  background-color: var(--accent, var(--accent-blue));
+}
+
+@utility text-accent {
+  color: var(--accent, var(--accent-blue));
+}
+
+@utility border-accent {
+  border-color: var(--accent, var(--accent-blue));
 }
 
 .accent-blue { --accent: var(--accent-blue); }
