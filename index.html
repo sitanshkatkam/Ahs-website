@@ -17,7 +17,14 @@
          staying dark in light mode. -->
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbfbfd" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#191c22" />
-    <meta name="mobile-web-app-capable" content="yes" />
+    <!-- No mobile-web-app-capable here, deliberately. It is the legacy Android
+         way of asking for a full-screen home-screen launch, and it is what put
+         Chrome into full-screen mode and made it post a permanent silent
+         "Full screen site controls" notification titled AHS every time the app
+         was opened. The manifest already asks for display: standalone, which
+         is the standard mechanism and the one an installed app actually obeys,
+         so the tag only ever contradicted it. The Apple pair below stays: iOS
+         has no manifest support worth relying on and no equivalent notice. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="AHS" />
