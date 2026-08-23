@@ -1,0 +1,168 @@
+<!doctype html>
+<!--
+  A plain static page on purpose.
+
+  This is the URL that goes on Google's OAuth consent screen and the one a
+  parent or an administrator will open, so it must not sit behind the app's
+  sign-in wall, must not need JavaScript, and must not be able to break when
+  the app does. It is self-contained for the same reason.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy &amp; About — American High Schedule</title>
+    <meta
+      name="description"
+      content="What the American High Schedule app stores, what it does not, and how to delete it."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: light-dark(#fbfbfd, #191c22);
+        --surface: light-dark(#ffffff, #212630);
+        --border: light-dark(#e7e8ee, #353b47);
+        --text: light-dark(#16171b, #f3f4f6);
+        --dim: light-dark(#63666f, #a8aeba);
+        --accent: light-dark(#2b6cb0, #69a6f2);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 2.5rem 1.25rem 4rem;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+          'Helvetica Neue', sans-serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      main { max-width: 42rem; margin: 0 auto; }
+      h1 { font-size: 1.75rem; letter-spacing: -0.02em; margin: 0 0 0.25rem; }
+      h2 {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--dim);
+        margin: 2.5rem 0 0.75rem;
+      }
+      p, li { color: var(--text); }
+      .lede { color: var(--dim); margin-top: 0; }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 1rem 1.25rem;
+      }
+      ul { padding-left: 1.1rem; margin: 0; }
+      li { margin: 0.4rem 0; }
+      a { color: var(--accent); }
+      .note {
+        border-left: 3px solid var(--accent);
+        padding-left: 1rem;
+        color: var(--dim);
+      }
+      footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--dim);
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>American High Schedule</h1>
+      <p class="lede">Privacy and about · Updated 23 August 2026</p>
+
+      <p class="note">
+        This is a student project. It is <strong>not an official app</strong> of American High
+        School or the Fremont Unified School District, and it is not endorsed by or affiliated
+        with either. Bell times are transcribed from the school's published schedule and the
+        school's public calendar, but they can change. For anything that matters — a final, a
+        minimum day — check with the school.
+      </p>
+
+      <h2>The short version</h2>
+      <div class="card">
+        <p style="margin: 0">
+          Your classes, grades and assignments never leave your phone. Signing in stores your
+          name and email address, and nothing else. There is no tracking, no analytics and no
+          advertising of any kind, and nothing is ever sold or shared.
+        </p>
+      </div>
+
+      <h2>Stored only on your device</h2>
+      <p>
+        This information is saved in your browser's local storage. It is never uploaded, and
+        nobody — including the developers — can see it:
+      </p>
+      <ul>
+        <li>Your class names, teachers and room numbers</li>
+        <li>Your grade level</li>
+        <li>Assignments and any grades you enter for the GPA calculator</li>
+        <li>Your notification preferences, theme, and any schedule changes you add</li>
+      </ul>
+
+      <h2>Stored on the server</h2>
+      <p>Only if you sign in with Google:</p>
+      <ul>
+        <li>Your Google account ID, email address, name, and profile picture link</li>
+        <li>A session record, so you stay signed in. The session token itself is stored only
+          as a one-way hash, so a copy of the database cannot be used to sign in as you.</li>
+      </ul>
+      <p>Only if you turn on notifications:</p>
+      <ul>
+        <li>An anonymous push address for your device, provided by your browser</li>
+        <li>A list of <em>times</em> at which your phone wants to be woken — and nothing about
+          what those alerts say. The wording of every notification is worked out on your phone
+          from data that never left it. The server does not know your classes.</li>
+      </ul>
+
+      <h2>Never collected</h2>
+      <ul>
+        <li>When you open the app, how long you use it, or what you look at</li>
+        <li>Your location</li>
+        <li>Anything from your Google account beyond your name, email and picture</li>
+        <li>Advertising or analytics identifiers — there are no third-party trackers in this
+          app at all</li>
+      </ul>
+
+      <h2>Who else is involved</h2>
+      <ul>
+        <li><strong>Google</strong> handles sign-in. The app is told your name and email; your
+          password is never seen by it.</li>
+        <li><strong>Cloudflare</strong> hosts the app and its database.</li>
+        <li><strong>Your browser's push service</strong> (Google on Android, Apple on iPhone)
+          delivers notifications. It is told to wake your phone, not what to say.</li>
+      </ul>
+
+      <h2>Deleting everything</h2>
+      <p>
+        Open <strong>Settings</strong> and scroll to the bottom. <strong>Delete account</strong>
+        removes your account from the server, signs you out on every device, and erases the data
+        stored on your phone. It cannot be undone, and there is no copy kept.
+      </p>
+
+      <h2>Age</h2>
+      <p>
+        This app is made for high school students. It is not directed at children under 13, and
+        it collects no more from anyone than what is listed above.
+      </p>
+
+      <h2>Questions, or something wrong?</h2>
+      <p>
+        If a bell time looks wrong, or you want your data removed and cannot reach the button,
+        email <a href="mailto:wenaydev@gmail.com">wenaydev@gmail.com</a>.
+      </p>
+
+      <footer>
+        Made by Vihaan Shah and Sitansh Katkam ·
+        <a href="/">Open the app</a> ·
+        <a href="https://github.com/sitanshkatkam/Ahs-website">Source code</a>
+      </footer>
+    </main>
+  </body>
+</html>

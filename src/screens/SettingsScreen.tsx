@@ -83,9 +83,25 @@ export function SettingsScreen({
           where nobody scrolls by mistake. Renders nothing if sign-in is off. */}
       <AccountSection />
 
-      <p className="pt-8 text-center text-xs text-faint">
-        Bell times from the official FUSD schedule.
-      </p>
+      {/* Says out loud what the app is, which is what was promised to the
+          school, and links the policy that Google's consent screen points at. */}
+      <div className="pt-4 text-center text-xs leading-relaxed text-faint">
+        <p>
+          A student project — not an official app of American High School or FUSD. Bell times
+          come from the school's published schedule; check with the school for anything that
+          matters.
+        </p>
+        <p className="pt-3">
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noopener"
+            className="underline decoration-dotted underline-offset-2"
+          >
+            Privacy &amp; about
+          </a>
+        </p>
+      </div>
     </div>
   );
 }

@@ -87,6 +87,21 @@ export function Onboarding({ settings, update }: Props) {
               : 'Your classes and grades stay on this device.'}
           </p>
           {note && <p className="mt-3 text-sm text-accent">{note}</p>}
+
+          {/* Before the button, not after. Someone about to hand over their
+              Google account should be able to read what happens to it first. */}
+          {mustSignIn && (
+            <p className="mt-6 text-xs text-faint">
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener"
+                className="underline decoration-dotted underline-offset-2"
+              >
+                What this stores, and what it doesn't
+              </a>
+            </p>
+          )}
         </div>
       ) : (
         <div className="flex-1">
