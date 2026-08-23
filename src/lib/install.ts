@@ -58,10 +58,35 @@ export async function promptInstall(): Promise<boolean> {
   }
 }
 
+/**
+ * How the app is being displayed right now.
+ *
+ * `fullscreen` is the interesting one and the reason this exists. A legacy
+ * Android home-screen *shortcut* — the old bookmark kind, not a real installed
+ * app — launches the site with no system UI at all, and Chrome then posts a
+ * permanent silent "Full screen site controls" notification so you can escape
+ * it. The manifest asks for `standalone`, but a shortcut created before that
+ * mattered keeps whatever mode it was born with, so the only cure is to remove
+ * it and install properly. Reporting the mode makes that diagnosable instead
+ * of mysterious.
+ */
+export type DisplayMode = 'browser' | 'minimal-ui' | 'standalone' | 'fullscreen';
+
+export function displayMode(): DisplayMode {
+  if (typeof window === 'undefined' || !window.matchMedia) return 'browser';
+  for (const mode of ['fullscreen', 'standalone', 'minimal-ui'] as const) {
+    if (window.matchMedia(`(display-mode: ${mode})`).matches) return mode;
+  }
+  return 'browser';
+}
+
 /** Already running from the home screen? */
 export function isInstalled(): boolean {
   if (typeof window === 'undefined') return false;
-  if (window.matchMedia?.('(display-mode: standalone)').matches) return true;
+  // fullscreen counts: it is a home-screen launch, just the wrong kind. Saying
+  // "not installed" would nag someone to install what they already have.
+  const mode = displayMode();
+  if (mode === 'standalone' || mode === 'fullscreen') return true;
   // Safari's own non-standard flag, still the only signal on iOS.
   return (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
 }

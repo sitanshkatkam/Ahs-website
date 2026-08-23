@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  displayMode,
   installState,
   onInstallAvailabilityChange,
   promptInstall,
@@ -121,6 +122,30 @@ export function InstallSettingsRow() {
   const [busy, setBusy] = useState(false);
 
   if (state.kind === 'installed') {
+    /*
+      A fullscreen launch means this is an old-style bookmark shortcut rather
+      than an installed app. Chrome then posts a permanent silent "Full screen
+      site controls" notification, and no change to the site can clear it: the
+      shortcut keeps whatever display mode it was created with. Say so plainly,
+      because otherwise it looks like the app is sending a mystery notification.
+    */
+    if (displayMode() === 'fullscreen') {
+      return (
+        <div className="p-4">
+          <p className="text-sm text-dim">
+            <span className="font-medium text-main">Added as a shortcut.</span> It's running
+            full screen, so Chrome keeps a permanent silent notification in your shade to let
+            you exit.
+          </p>
+          <p className="mt-2 text-sm text-dim">
+            To clear it: remove this from your home screen, open the site in Chrome, and choose{' '}
+            <span className="font-medium text-main">Install app</span> from the ⋮ menu. That
+            gives you a real app, its own icon on notifications, and no full-screen notice.
+          </p>
+        </div>
+      );
+    }
+
     return (
       <p className="p-4 text-sm text-dim">
         <span className="font-medium text-main">Installed.</span> You're running from the home
