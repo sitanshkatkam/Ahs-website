@@ -7,6 +7,14 @@ import { CollegeScreen } from './screens/CollegeScreen';
 import { Onboarding } from './screens/Onboarding';
 import { useNow } from './lib/useNow';
 import { toISODate } from './lib/date';
+import {
+  flushPush,
+  localStamp,
+  markChanged,
+  pullSchedule,
+  queuePush,
+  touchesSchedule,
+} from './lib/sync';
 import { loadSettings, saveSettings, type Settings } from './lib/storage';
 import { NotificationScheduler, planNotifications } from './lib/notifications';
 import { registerPush, unregisterPush } from './lib/push';
@@ -21,10 +29,19 @@ export default function App() {
   const now = useNow();
   const today = toISODate(now);
 
-  const update = useCallback((patch: Partial<Settings>) => {
+  const update = useCallback((patch: Partial<Settings>, fromServer = false) => {
     setSettings((prev) => {
       const next = { ...prev, ...patch };
       saveSettings(next);
+
+      // Only upload when the edit actually touched the schedule, and never
+      // when the edit *came from* the server — that would bounce it straight
+      // back and, worse, restamp it as a fresh local change.
+      if (!fromServer && touchesSchedule(patch)) {
+        markChanged();
+        queuePush(next);
+      }
+
       // registerPush recomputes the alert list and leaves a copy where the
       // service worker can read it, so the worker never has to re-derive it.
       // Switching every alert off should stop the server waking the phone,
@@ -47,6 +64,39 @@ export default function App() {
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   const schedulerRef = useRef<NotificationScheduler | null>(null);
+
+  /*
+    Pull the schedule down on open, and hand anything unsent up on the way out.
+
+    The GET answers 401 when nobody is signed in, so this needs no knowledge of
+    auth state — signed out, it simply does nothing.
+  */
+  useEffect(() => {
+    void pullSchedule().then((result) => {
+      if (result.kind === 'server-newer') {
+        // fromServer: applying this must not look like a local edit, or it
+        // would be stamped fresh and pushed straight back.
+        update(result.schedule, true);
+        markChanged(result.updated);
+      } else if (result.kind === 'nothing-stored' || result.kind === 'local-newer') {
+        // A first sign-in on a device that already has a schedule: seed the
+        // server so the *next* device gets it.
+        if (localStamp() === 0) markChanged();
+        queuePush(settingsRef.current);
+      }
+    });
+
+    // The debounce would otherwise eat an edit made just before switching apps.
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flushPush();
+    };
+    document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('pagehide', flushPush);
+    return () => {
+      document.removeEventListener('visibilitychange', onHide);
+      window.removeEventListener('pagehide', flushPush);
+    };
+  }, [update]);
 
   // The worker asks for this when a poke arrives and it has no plan to match
   // it against — the one case it can't fix on its own.

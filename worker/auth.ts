@@ -317,6 +317,20 @@ export async function currentAccount(request: Request, env: AuthEnv): Promise<Ac
   return row ?? null;
 }
 
+/** The signed-in account's id, or null. What sync keys off. */
+export async function currentUserId(request: Request, env: AuthEnv): Promise<string | null> {
+  const token = readCookie(request, SESSION_COOKIE);
+  if (!token) return null;
+
+  const row = await env.DB.prepare(
+    'SELECT user_id FROM sessions WHERE token_hash = ?1 AND expires > ?2',
+  )
+    .bind(await sha256(token), Date.now())
+    .first<{ user_id: string }>();
+
+  return row?.user_id ?? null;
+}
+
 /** Sign out this device only, and drop the row so the cookie is truly dead. */
 export async function signOut(request: Request, env: AuthEnv): Promise<Response> {
   const token = readCookie(request, SESSION_COOKIE);
@@ -382,6 +396,10 @@ export async function deleteAccount(request: Request, env: AuthEnv): Promise<Res
   // Every session, not just this one: deleting the account has to sign out the
   // student's other devices too, or the account outlives its own deletion.
   await env.DB.batch([
+    // Explicit, not left to ON DELETE CASCADE: SQLite only enforces foreign
+    // keys when the connection asks it to, and a synced schedule outliving the
+    // account it belongs to would make "delete everything" untrue.
+    env.DB.prepare('DELETE FROM schedules WHERE user_id = ?1').bind(row.user_id),
     env.DB.prepare('DELETE FROM sessions WHERE user_id = ?1').bind(row.user_id),
     env.DB.prepare('DELETE FROM users WHERE id = ?1').bind(row.user_id),
   ]);

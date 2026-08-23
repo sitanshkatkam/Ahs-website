@@ -129,6 +129,7 @@ const LOCAL_KEYS = [
   'ahs-schedule:feed',
   'ahs-schedule:fired',
   'ahs-schedule:uploaded:d1',
+  'ahs-schedule:schedule-updated',
 ];
 
 export async function eraseLocalData(): Promise<void> {

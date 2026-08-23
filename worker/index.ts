@@ -24,6 +24,7 @@ import { sendPoke, VapidSigner, type PushSubscriptionRecord } from './push';
 import {
   authConfigured,
   currentAccount,
+  currentUserId,
   deleteAccount,
   handleCallback,
   pruneSessions,
@@ -261,6 +262,64 @@ export default {
         return deleteAccount(request, env);
       }
       return json({ error: 'not found' }, 404);
+    }
+
+    /*
+      Schedule sync. The server treats `data` as an opaque string: it never
+      parses it, never reasons about it, and nothing else here reads the table.
+      That keeps the sync contract entirely a client concern, and means adding
+      a field to a student's schedule needs no change on this side.
+
+      Last-write-wins, decided by the client's `updated` stamp rather than the
+      server's clock — the question is which *edit* is newer, and only the
+      device that made it knows when that was.
+    */
+    if (url.pathname === '/api/sync') {
+      const userId = authConfigured(env) ? await currentUserId(request, env) : null;
+      if (!userId) return json({ error: 'not signed in' }, 401);
+
+      if (request.method === 'GET') {
+        const row = await env.DB.prepare(
+          'SELECT data, updated FROM schedules WHERE user_id = ?1',
+        )
+          .bind(userId)
+          .first<{ data: string; updated: number }>();
+        // A brand new account has nothing yet, which is a normal answer.
+        return json(row ? { data: row.data, updated: row.updated } : { data: null, updated: 0 });
+      }
+
+      if (request.method === 'PUT') {
+        let body: { data?: unknown; updated?: unknown };
+        try {
+          body = await request.json();
+        } catch {
+          return json({ error: 'invalid json' }, 400);
+        }
+
+        // A cap, so one client cannot bloat a row. A schedule is a few KB; this
+        // is far above anything legitimate and far below D1's 1 MB row limit.
+        if (typeof body.data !== 'string' || body.data.length > 64_000) {
+          return json({ error: 'invalid data' }, 400);
+        }
+        const updated =
+          typeof body.updated === 'number' && Number.isFinite(body.updated)
+            ? body.updated
+            : Date.now();
+
+        await env.DB.prepare(
+          `INSERT INTO schedules (user_id, data, updated)
+           VALUES (?1, ?2, ?3)
+           ON CONFLICT(user_id) DO UPDATE SET
+             data = excluded.data, updated = excluded.updated
+           WHERE excluded.updated >= schedules.updated`,
+        )
+          .bind(userId, body.data, updated)
+          .run();
+
+        return json({ ok: true });
+      }
+
+      return json({ error: 'method not allowed' }, 405);
     }
 
     // The client needs the public key to subscribe; it is public by definition.
