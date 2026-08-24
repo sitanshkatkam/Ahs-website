@@ -119,13 +119,15 @@ export function ShareButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       aria-label="Share the app"
       title="Share the app"
-      className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-app text-dim transition-colors hover:bg-surface-2"
+      className="flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-app px-3.5 text-sm font-medium text-dim transition-colors hover:bg-surface-2"
     >
-      {/* A QR glyph, drawn rather than an emoji so it matches the UI weight. */}
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+      {/* A QR glyph, drawn rather than an emoji so it matches the UI weight.
+          The word carries the meaning; the icon just says which kind of share. */}
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
         <path d="M1 1h5v5H1V1zm1.5 1.5v2h2v-2h-2zM10 1h5v5h-5V1zm1.5 1.5v2h2v-2h-2zM1 10h5v5H1v-5zm1.5 1.5v2h2v-2h-2z" />
         <path d="M8 8h1.5v1.5H8V8zm2.5 0H12v1.5h-1.5V8zm3 0H15v1.5h-1.5V8zM8 10.5h1.5V12H8v-1.5zm3.5 0H13V12h-1.5v-1.5zm2 2.5H15v1.5h-1.5V13zm-3 0H12v1.5h-1.5V13zM8 13h1.5v1.5H8V13z" />
       </svg>
+      Share
     </button>
   );
 }

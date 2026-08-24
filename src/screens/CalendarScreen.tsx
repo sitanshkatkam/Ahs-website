@@ -58,20 +58,18 @@ export function CalendarScreen({ today, settings }: Props) {
                 className={[
                   'aspect-square rounded-xl border text-sm transition-colors',
                   info.template ? `accent-${info.template.accent}` : '',
+                  // The whole cell carries the schedule's colour. The dot that
+                  // used to do this job is gone: repeating the same colour in
+                  // a 6px dot on top of a tinted square said nothing extra.
+                  info.isSchoolDay ? 'bg-accent-soft' : '',
                   isToday
-                    ? 'border-accent bg-surface-2 font-semibold'
+                    ? 'border-accent font-semibold'
                     : 'border-transparent hover:bg-surface-2',
                   info.isSchoolDay ? 'text-main' : 'text-faint',
                 ].join(' ')}
               >
-                <span className="flex h-full flex-col items-center justify-center gap-1">
-                  <span>{Number(iso.slice(8, 10))}</span>
-                  <span
-                    className={[
-                      'h-1.5 w-1.5 rounded-full',
-                      info.isSchoolDay ? 'bg-accent' : 'bg-transparent',
-                    ].join(' ')}
-                  />
+                <span className="grid h-full place-items-center">
+                  {Number(iso.slice(8, 10))}
                 </span>
               </button>
             );

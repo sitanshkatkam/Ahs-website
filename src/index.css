@@ -198,6 +198,20 @@ button,
   these today — the toggles set the class from React state — but writing them
   as utilities means reaching for one later just works.
 */
+/*
+  A wash of the day's colour rather than the colour itself, for filling a whole
+  surface behind text — the calendar grid, where every school day is tinted by
+  which schedule it runs.
+
+  The plain `transparent` first is not redundant: it is what a browser too old
+  for color-mix falls back to. Better an untinted cell than a solid block of
+  accent with unreadable text on top.
+*/
+@utility bg-accent-soft {
+  background-color: transparent;
+  background-color: color-mix(in oklab, var(--accent, var(--accent-blue)) 16%, transparent);
+}
+
 @utility bg-accent {
   background-color: var(--accent, var(--accent-blue));
 }
