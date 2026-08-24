@@ -24,7 +24,7 @@ crons = ["* * * * *"]
 
 [vars]
 VAPID_PUBLIC_KEY = "BNu7sDx1aarCJbiLkSrlZ3pmS6-INQ26JKMw5XKoB4pXg7VKJj-MoaUwCllzqkcAJJuAZ8eWcekbLSDjES2w8xM"
-VAPID_SUBJECT = "mailto:wenaydev@gmail.com"
+VAPID_SUBJECT = "mailto:vihaan5147@gmail.com"
 GOOGLE_CLIENT_ID = "356065144650-j20ou04h80rg83c6fj7fjgn7j5820kuh.apps.googleusercontent.com"
 
 # VAPID_PUBLIC_KEY is set at deploy time from .vapid.json (see npm run deploy).
