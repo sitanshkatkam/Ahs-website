@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { planNotifications } from './notifications';
 import {
   DEFAULT_NOTIFICATIONS,
-  type Assignment,
   type NotificationPrefs,
   type UserClass,
 } from './storage';
@@ -154,74 +153,6 @@ describe('planNotifications', () => {
     const ids = plan.map((n) => n.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(id.startsWith(`${MONDAY}:`)).toBe(true);
-  });
-
-  it('digests everything due into one alert rather than one each', () => {
-    const assignments: Assignment[] = [
-      { id: 'a', period: 1, title: 'Lab report', due: '2026-09-15', type: 'homework', done: false },
-      { id: 'b', period: 3, title: 'Essay draft', due: '2026-09-15', type: 'project', done: false },
-    ];
-    const plan = planNotifications(
-      MONDAY,
-      prefs({ assignmentsDue: { on: true, daysBefore: 1, atHour: 18 } }),
-      classes,
-      [],
-      undefined,
-      assignments,
-    );
-    const due = plan.filter((n) => n.id.includes(':due:'));
-    expect(due).toHaveLength(1);
-    expect(due[0].title).toBe('2 things due tomorrow');
-    expect(due[0].body).toBe('Lab report · Essay draft');
-    expect(due[0].at.getHours()).toBe(18);
-  });
-
-  it('names the class when only one thing is due', () => {
-    const assignments: Assignment[] = [
-      { id: 'a', period: 1, title: 'Lab report', due: '2026-09-15', type: 'homework', done: false },
-    ];
-    const plan = planNotifications(
-      MONDAY,
-      prefs({ assignmentsDue: { on: true, daysBefore: 1, atHour: 18 } }),
-      classes,
-      [],
-      undefined,
-      assignments,
-    );
-    const due = plan.find((n) => n.id.includes(':due:'))!;
-    expect(due.title).toBe('Due tomorrow: Lab report');
-    expect(due.body).toBe('AP Chemistry');
-  });
-
-  it('ignores assignments already ticked off', () => {
-    const assignments: Assignment[] = [
-      { id: 'a', period: 1, title: 'Done already', due: '2026-09-15', type: 'homework', done: true },
-    ];
-    const plan = planNotifications(
-      MONDAY,
-      prefs({ assignmentsDue: { on: true, daysBefore: 1, atHour: 18 } }),
-      classes,
-      [],
-      undefined,
-      assignments,
-    );
-    expect(plan.filter((n) => n.id.includes(':due:'))).toEqual([]);
-  });
-
-  it('still reminds about work on a day off', () => {
-    // Sunday: no bell schedule, but homework due Monday still matters.
-    const assignments: Assignment[] = [
-      { id: 'a', period: 1, title: 'Reading', due: '2026-09-14', type: 'homework', done: false },
-    ];
-    const plan = planNotifications(
-      '2026-09-13',
-      prefs({ assignmentsDue: { on: true, daysBefore: 1, atHour: 18 } }),
-      classes,
-      [],
-      undefined,
-      assignments,
-    );
-    expect(plan.filter((n) => n.id.includes(':due:'))).toHaveLength(1);
   });
 
   it('respects a user override that cancels school', () => {

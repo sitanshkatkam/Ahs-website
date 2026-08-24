@@ -19,7 +19,6 @@ import {
   upcomingSchoolDays,
 } from '../lib/resolveDay';
 import type { Settings } from '../lib/storage';
-import { AssignmentList } from './ClassesScreen';
 import { Collapse } from '../components/Collapse';
 import { InstallPrompt } from '../components/InstallPrompt';
 import { SharePanel, ShareButton } from '../components/SharePanel';
@@ -30,10 +29,9 @@ type Props = {
   settings: Settings;
   update: (patch: Partial<Settings>) => void;
   onOpenCalendar: () => void;
-  onOpenClasses: () => void;
 };
 
-export function Today({ today, now, settings, update, onOpenCalendar, onOpenClasses }: Props) {
+export function Today({ today, now, settings, update, onOpenCalendar }: Props) {
   const [sharing, setSharing] = useState(false);
   const day = resolveDay(today, settings.customOverrides, settings.extraPeriods);
   const accentClass = day.template ? `accent-${day.template.accent}` : 'accent-blue';
@@ -66,38 +64,8 @@ export function Today({ today, now, settings, update, onOpenCalendar, onOpenClas
         <DayOff today={today} settings={settings} onOpenCalendar={onOpenCalendar} />
       )}
 
-      <DueSoon today={today} settings={settings} update={update} onOpenClasses={onOpenClasses} />
       <ComingUp today={today} hidden={settings.hiddenEventCategories} />
     </div>
-  );
-}
-
-function DueSoon({
-  today,
-  settings,
-  update,
-  onOpenClasses,
-}: {
-  today: string;
-  settings: Settings;
-  update: (p: Partial<Settings>) => void;
-  onOpenClasses: () => void;
-}) {
-  const open = settings.assignments.filter((a) => !a.done);
-  if (open.length === 0) return null;
-
-  return (
-    <section className="px-5 pt-6">
-      <div className="flex items-baseline justify-between px-1 pb-2">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-faint">Due soon</h2>
-        <button onClick={onOpenClasses} className="text-xs text-dim underline">
-          All {open.length}
-        </button>
-      </div>
-      <div className="rounded-2xl border border-app bg-surface px-4 py-3">
-        <AssignmentList today={today} settings={settings} update={update} limit={4} />
-      </div>
-    </section>
   );
 }
 

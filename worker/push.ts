@@ -8,7 +8,7 @@
  * That is a deliberate design choice, not a shortcut: the service worker
  * already has the bell schedule and the user's own settings on-device, so it
  * can work out what to show by itself. Nothing about anyone's classes,
- * teachers, or assignments ever reaches this server.
+ * or teachers ever reaches this server.
  */
 
 export type PushSubscriptionRecord = {

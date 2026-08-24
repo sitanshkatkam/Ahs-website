@@ -313,7 +313,6 @@ function alertSummary(prefs: NotificationPrefs): string {
     prefs.tomorrowType.on,
     prefs.upcomingEvents.on,
     prefs.mealsAndBell.on,
-    prefs.assignmentsDue.on,
   ];
   const on = flags.filter(Boolean).length;
   return on === 0 ? 'All off' : `${on} of ${flags.length} on`;
@@ -575,26 +574,6 @@ function NotificationsSection({ settings, update }: Props) {
             suffix="days before"
             onChange={(daysBefore) =>
               setPrefs({ upcomingEvents: { ...prefs.upcomingEvents, daysBefore } })
-            }
-          />
-        )}
-      </Toggle>
-
-      <Toggle
-        label="Assignments due"
-        sub="One digest, not a buzz per task"
-        checked={prefs.assignmentsDue.on}
-        onChange={(v) =>
-          toggle((on) => setPrefs({ assignmentsDue: { ...prefs.assignmentsDue, on } }), v)
-        }
-      >
-        {prefs.assignmentsDue.on && (
-          <NumberPicker
-            value={prefs.assignmentsDue.daysBefore}
-            options={[0, 1, 2, 3]}
-            format={(d) => (d === 0 ? 'same day' : d === 1 ? 'night before' : `${d} days`)}
-            onChange={(daysBefore) =>
-              setPrefs({ assignmentsDue: { ...prefs.assignmentsDue, daysBefore } })
             }
           />
         )}

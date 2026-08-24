@@ -7,12 +7,12 @@ import type { Settings } from './storage';
  * phone and they are already there. Nothing else about the account does
  * anything, and nothing else is synced.
  *
- * What is deliberately left behind is as important as what travels. Grades and
- * assignments stay on the device that made them — they are the sensitive half,
- * nobody needs them in two places, and keeping them local is what lets the
- * privacy page go on saying they never leave your phone. Notification
- * preferences and theme stay local too, for a plainer reason: you want alerts
- * on your phone and not on a school Chromebook.
+ * What is deliberately left behind is as important as what travels. Grades stay
+ * on the device that made them — they are the sensitive half, nobody needs them
+ * in two places, and keeping them local is what lets the privacy page go on
+ * saying they never leave your phone. Notification preferences and theme stay
+ * local too, for a plainer reason: you want alerts on your phone and not on a
+ * school Chromebook.
  */
 
 /** The fields that travel. Everything not listed here is device-local. */

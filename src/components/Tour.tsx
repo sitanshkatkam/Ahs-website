@@ -43,7 +43,7 @@ const STEPS: Step[] = [
   {
     icon: '✎',
     title: 'Classes',
-    body: 'Track assignments and grades per class.',
+    body: 'Your grades for each class, and the GPA they add up to.',
     points: [
       'Add homework, tests and projects with due dates',
       'Weighted and unweighted GPA, updated as you type',

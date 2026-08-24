@@ -21,7 +21,6 @@ import { resolveDay } from './resolveDay';
 import {
   loadFiredIds,
   saveFiredIds,
-  type Assignment,
   type ExtraPeriod,
   type NotificationPrefs,
   type UserClass,
@@ -64,7 +63,6 @@ export function planNotifications(
   classes: UserClass[],
   overrides: DayOverride[] = [],
   events: SchoolEvent[] = EVENTS,
-  assignments: Assignment[] = [],
   extraPeriods: ExtraPeriod[] = [],
 ): PlannedNotification[] {
   const out: PlannedNotification[] = [];
@@ -145,30 +143,6 @@ export function planNotifications(
     }
   }
 
-  if (prefs.assignmentsDue.on) {
-    const targetDue = addDays(dateISO, prefs.assignmentsDue.daysBefore);
-    const due = assignments.filter((a) => !a.done && a.due === targetDue);
-    if (due.length > 0) {
-      const when =
-        prefs.assignmentsDue.daysBefore === 0
-          ? 'today'
-          : prefs.assignmentsDue.daysBefore === 1
-            ? 'tomorrow'
-            : `in ${prefs.assignmentsDue.daysBefore} days`;
-      const at = atTime(dateISO, `${String(prefs.assignmentsDue.atHour).padStart(2, '0')}:00`);
-      // One digest rather than a pile of separate buzzes.
-      out.push({
-        id: `${dateISO}:due:${targetDue}`,
-        at,
-        title:
-          due.length === 1 ? `Due ${when}: ${due[0].title}` : `${due.length} things due ${when}`,
-        body:
-          due.length === 1
-            ? classLabel(due[0].period, classes)
-            : due.map((a) => a.title).join(' · '),
-      });
-    }
-  }
 
   if (prefs.upcomingEvents.on) {
     const targetDate = addDays(dateISO, prefs.upcomingEvents.daysBefore);

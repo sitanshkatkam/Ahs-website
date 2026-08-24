@@ -55,19 +55,6 @@ export const DEFAULT_EXTRA_PERIODS: ExtraPeriod[] = [
   { period: 7, enabled: false, start: '15:36', end: '16:31' },
 ];
 
-export type AssignmentType = 'homework' | 'test' | 'project';
-
-export type Assignment = {
-  id: string;
-  /** Which class it belongs to. */
-  period: number;
-  title: string;
-  /** "YYYY-MM-DD" */
-  due: string;
-  type: AssignmentType;
-  done: boolean;
-};
-
 export type Semester = 's1' | 's2';
 
 /** One letter grade for one class in one semester. */
@@ -87,7 +74,6 @@ export type NotificationPrefs = {
   tomorrowType: { on: boolean; atHour: number };
   upcomingEvents: { on: boolean; daysBefore: number };
   mealsAndBell: { on: boolean };
-  assignmentsDue: { on: boolean; daysBefore: number; atHour: number };
 };
 
 export type Settings = {
@@ -101,7 +87,6 @@ export type Settings = {
   hiddenEventCategories: EventCategory[];
 
   // --- v2 ---
-  assignments: Assignment[];
   grades: GradeEntry[];
   /** Asked during onboarding; switchable in Settings. */
   gradeLevel?: GradeLevel;
@@ -127,7 +112,6 @@ export const DEFAULT_NOTIFICATIONS: NotificationPrefs = {
   tomorrowType: { on: false, atHour: 20 },
   upcomingEvents: { on: false, daysBefore: 1 },
   mealsAndBell: { on: false },
-  assignmentsDue: { on: false, daysBefore: 1, atHour: 18 },
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -140,7 +124,6 @@ export const DEFAULT_SETTINGS: Settings = {
   notifications: DEFAULT_NOTIFICATIONS,
   customOverrides: [],
   hiddenEventCategories: [],
-  assignments: [],
   grades: [],
   honorsBonus: 1,
   installDismissed: false,
@@ -201,16 +184,11 @@ function migrate(parsed: Partial<Settings>): Settings {
         ...parsed.notifications?.upcomingEvents,
       },
       mealsAndBell: { ...base.notifications.mealsAndBell, ...parsed.notifications?.mealsAndBell },
-      assignmentsDue: {
-        ...base.notifications.assignmentsDue,
-        ...parsed.notifications?.assignmentsDue,
-      },
     },
     customOverrides: Array.isArray(parsed.customOverrides) ? parsed.customOverrides : [],
     hiddenEventCategories: Array.isArray(parsed.hiddenEventCategories)
       ? parsed.hiddenEventCategories
       : [],
-    assignments: Array.isArray(parsed.assignments) ? parsed.assignments : [],
     grades: Array.isArray(parsed.grades) ? parsed.grades : [],
     gradeLevel: parsed.gradeLevel,
     honorsBonus: parsed.honorsBonus === 0.5 ? 0.5 : 1,

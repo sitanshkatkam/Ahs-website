@@ -108,7 +108,6 @@ export function plannedAlerts(settings: Settings, from = new Date()): StoredAler
       settings.classes,
       settings.customOverrides,
       undefined,
-      settings.assignments,
       settings.extraPeriods,
     )) {
       const t = n.at.getTime();
@@ -136,8 +135,7 @@ function anyToggleOn(settings: Settings): boolean {
     n.classStarting.on ||
     n.tomorrowType.on ||
     n.upcomingEvents.on ||
-    n.mealsAndBell.on ||
-    n.assignmentsDue.on
+    n.mealsAndBell.on
   );
 }
 

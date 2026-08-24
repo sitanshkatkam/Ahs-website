@@ -7,8 +7,8 @@ import { unregisterPush } from '../lib/push';
  *
  * Deliberately harder to trigger than signing out. Signing out is a two-tap
  * confirm because the worst case is a minor inconvenience; this one throws away
- * six class names, a term of grades and every assignment, none of which exist
- * anywhere else. So it asks for the word to be typed.
+ * six class names and a term of grades, neither of which exists anywhere else.
+ * So it asks for the word to be typed.
  *
  * That is a real cost on a phone keyboard, and it is the point: the friction is
  * proportional to what is lost, and nobody deletes a term of grades with a
@@ -66,7 +66,7 @@ export function DeleteAccountSection({ account }: { account: Account }) {
             <ul className="mt-2 space-y-1 text-xs text-dim">
               <li>· Your account ({account.email}) is removed from the server</li>
               <li>· You are signed out on every device</li>
-              <li>· Your classes, grades and assignments on this phone are erased</li>
+              <li>· Your classes and grades on this phone are erased</li>
               <li>· Notifications stop</li>
             </ul>
 

@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS, type Settings } from './storage';
 
 /**
  * Sync carries the schedule and nothing else. The test that matters most is
- * the negative one: grades and assignments must not travel. Keeping them on
+ * the negative one: grades must not travel. Keeping them on
  * the device is the reason the privacy page can still say a student's grades
  * never leave their phone, so a field quietly joining the synced set would
  * turn that sentence into a lie without anything visibly breaking.
@@ -16,9 +16,6 @@ const full: Settings = {
   gradeLevel: 11,
   extraPeriods: [{ period: 0, enabled: true, start: '07:30', end: '08:25' }],
   customOverrides: [{ date: '2027-03-11', scheduleId: 'rally', label: 'Changed by you' }],
-  assignments: [
-    { id: 'a1', title: 'Lab report', due: '2026-09-01', done: false, type: 'homework', period: 1 },
-  ],
   grades: [{ period: 1, semester: 's1', letter: 'A' }],
   theme: 'dark',
 };
@@ -32,10 +29,9 @@ describe('what syncs', () => {
     expect(out.customOverrides).toEqual(full.customOverrides);
   });
 
-  it('leaves grades and assignments on the device', () => {
+  it('leaves grades on the device', () => {
     const out = pickSynced(full) as Record<string, unknown>;
     expect(out.grades).toBeUndefined();
-    expect(out.assignments).toBeUndefined();
   });
 
   it('leaves device preferences behind', () => {
@@ -69,7 +65,6 @@ describe('touchesSchedule', () => {
   it('is false for everything else, so a theme flip costs no upload', () => {
     expect(touchesSchedule({ theme: 'dark' })).toBe(false);
     expect(touchesSchedule({ grades: [] })).toBe(false);
-    expect(touchesSchedule({ assignments: [] })).toBe(false);
     expect(touchesSchedule({ tourSeen: true })).toBe(false);
     expect(touchesSchedule({})).toBe(false);
   });

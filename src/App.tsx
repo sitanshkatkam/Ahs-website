@@ -137,7 +137,6 @@ export default function App() {
           s.classes,
           s.customOverrides,
           undefined,
-          s.assignments,
           s.extraPeriods,
         ),
         ...planNotifications(
@@ -146,7 +145,6 @@ export default function App() {
           s.classes,
           s.customOverrides,
           undefined,
-          s.assignments,
           s.extraPeriods,
         ),
       ];
@@ -166,14 +164,12 @@ export default function App() {
         settings.notifications,
         settings.classes,
         settings.customOverrides,
-        settings.assignments,
         settings.extraPeriods,
       ]),
     [
       settings.notifications,
       settings.classes,
       settings.customOverrides,
-      settings.assignments,
       settings.extraPeriods,
     ],
   );
@@ -218,12 +214,11 @@ export default function App() {
               settings={settings}
               update={update}
               onOpenCalendar={() => setTab('calendar')}
-              onOpenClasses={() => setTab('classes')}
             />
           )}
           {tab === 'calendar' && <CalendarScreen today={today} settings={settings} />}
           {tab === 'classes' && (
-            <ClassesScreen today={today} settings={settings} update={update} />
+            <ClassesScreen settings={settings} update={update} />
           )}
           {tab === 'college' && (
             <CollegeScreen today={today} settings={settings} update={update} />
@@ -250,8 +245,7 @@ function anyAlertOn(s: Settings): boolean {
     n.classStarting.on ||
     n.tomorrowType.on ||
     n.upcomingEvents.on ||
-    n.mealsAndBell.on ||
-    n.assignmentsDue.on
+    n.mealsAndBell.on
   );
 }
 

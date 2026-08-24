@@ -117,7 +117,7 @@ export async function deleteAccount(): Promise<boolean> {
  * Everything the app has ever written on this device.
  *
  * "Delete my account" has to mean it. Almost none of a student's data is in
- * the account — classes, grades, assignments and settings never left the
+ * the account — classes, grades and settings never left the
  * phone — so deleting only the server row would leave all of it sitting here
  * and make the promise a lie.
  *
