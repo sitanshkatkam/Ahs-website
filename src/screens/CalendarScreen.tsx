@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Sheet } from '../components/Sheet';
+import { EventSheet, hasDetail } from '../components/EventSheet';
+import type { SchoolEvent } from '../data/calendar';
 import { SCHOOL_YEAR } from '../data/calendar';
 import { addDays, formatTime, fromISODate, toISODate } from '../lib/date';
 import { resolveDay, slotClass, slotTitle } from '../lib/resolveDay';
@@ -191,6 +193,9 @@ function DaySheet({
   // Keep rendering the last day through the closing animation, otherwise the
   // sheet empties itself on the way down.
   const [lastIso, setLastIso] = useState<string | null>(iso);
+  // An event's detail sheet, opened from the list below. Sits on top of this
+  // one rather than replacing it, so closing it returns you to the day.
+  const [event, setEvent] = useState<SchoolEvent | null>(null);
   useEffect(() => {
     if (iso) setLastIso(iso);
   }, [iso]);
@@ -218,11 +223,27 @@ function DaySheet({
 
         {info.events.length > 0 && (
           <ul className="mt-4 space-y-1">
-            {info.events.map((e) => (
-              <li key={e.title} className="text-sm text-dim">
-                • {e.title}
-              </li>
-            ))}
+            {info.events.map((e) =>
+              // Same rule as the Today list: a row only becomes a button when
+              // there is something behind it.
+              hasDetail(e) ? (
+                <li key={e.title}>
+                  <button
+                    onClick={() => setEvent(e)}
+                    className="flex w-full items-center gap-1 text-left text-sm text-dim"
+                  >
+                    <span>• {e.title}</span>
+                    <span aria-hidden className="text-xs text-faint">
+                      ▸
+                    </span>
+                  </button>
+                </li>
+              ) : (
+                <li key={e.title} className="text-sm text-dim">
+                  • {e.title}
+                </li>
+              ),
+            )}
           </ul>
         )}
 
@@ -261,6 +282,8 @@ function DaySheet({
           Close
         </button>
       </div>
+
+      <EventSheet event={event} onClose={() => setEvent(null)} />
     </Sheet>
   );
 }

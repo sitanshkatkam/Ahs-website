@@ -171,6 +171,18 @@ export type SchoolEvent = {
   endDate?: string;
   title: string;
   category: EventCategory;
+
+  /*
+    Everything below comes from the school's Google Calendar and is absent on
+    the curated entries here. The feed has carried time and location all along;
+    nothing displayed them, so they were invisible detail sitting in the data.
+  */
+
+  /** Display time for a timed event, e.g. "7:00 PM". Absent when all-day. */
+  time?: string;
+  location?: string;
+  /** Whatever the school typed into the calendar entry. */
+  description?: string;
 };
 
 /**

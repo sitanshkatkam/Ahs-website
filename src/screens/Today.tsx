@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { SchoolEvent } from '../data/calendar';
 import { ProgressRing } from '../components/ProgressRing';
 import { SCHOOL_YEAR, type EventCategory } from '../data/calendar';
 import type { Slot } from '../data/schedules';
@@ -22,6 +23,7 @@ import type { Settings } from '../lib/storage';
 import { Collapse } from '../components/Collapse';
 import { InstallPrompt } from '../components/InstallPrompt';
 import { SharePanel, ShareButton } from '../components/SharePanel';
+import { EventSheet, hasDetail } from '../components/EventSheet';
 
 type Props = {
   today: string;
@@ -359,6 +361,7 @@ function DayOff({
 }
 
 function ComingUp({ today, hidden }: { today: string; hidden: EventCategory[] }) {
+  const [selected, setSelected] = useState<SchoolEvent | null>(null);
   const events = upcomingEvents(today, 5, hidden);
   if (events.length === 0) return null;
 
@@ -368,30 +371,57 @@ function ComingUp({ today, hidden }: { today: string; hidden: EventCategory[] })
         Coming up
       </h2>
       <ul className="overflow-hidden rounded-2xl border border-app bg-surface">
-        {events.map((e, i) => (
-          <li
-            key={`${e.date}-${e.title}`}
-            className={['flex items-center gap-3 px-4 py-3', i === 0 ? '' : 'border-t border-app'].join(
-              ' ',
-            )}
-          >
-            <span className="text-lg" aria-hidden>
-              {categoryIcon(e.category)}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-medium">{e.title}</p>
-              <p className="text-xs text-faint">
-                {shortDate(e.date)}
-                {e.endDate ? ` – ${shortDate(e.endDate)}` : ''}
-              </p>
-            </div>
-            <span className="tnum shrink-0 text-xs text-dim">{daysAway(today, e.date)}</span>
-          </li>
-        ))}
+        {events.map((e, i) => {
+          // Only tappable when there is something behind the tap. Opening a
+          // sheet that says nothing is worse than a row that doesn't move.
+          const detailed = hasDetail(e);
+          const inner = (
+            <>
+              <span className="text-lg" aria-hidden>
+                {categoryIcon(e.category)}
+              </span>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="truncate font-medium">{e.title}</p>
+                <p className="text-xs text-faint">
+                  {shortDate(e.date)}
+                  {e.endDate ? ` – ${shortDate(e.endDate)}` : ''}
+                  {e.time ? ` · ${e.time}` : ''}
+                </p>
+              </div>
+              <span className="tnum shrink-0 text-xs text-dim">{daysAway(today, e.date)}</span>
+              {detailed && (
+                <span aria-hidden className="shrink-0 text-xs text-faint">
+                  ▸
+                </span>
+              )}
+            </>
+          );
+
+          return (
+            <li
+              key={`${e.date}-${e.title}`}
+              className={i === 0 ? '' : 'border-t border-app'}
+            >
+              {detailed ? (
+                <button
+                  onClick={() => setSelected(e)}
+                  className="flex w-full items-center gap-3 px-4 py-3"
+                >
+                  {inner}
+                </button>
+              ) : (
+                <div className="flex items-center gap-3 px-4 py-3">{inner}</div>
+              )}
+            </li>
+          );
+        })}
       </ul>
+
+      <EventSheet event={selected} onClose={() => setSelected(null)} />
     </section>
   );
 }
+
 
 function categoryIcon(c: string): string {
   switch (c) {

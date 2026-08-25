@@ -1,3 +1,4 @@
+import { htmlToText } from './html-text.js';
 /**
  * Parsing for American High's public Google Calendar feed.
  *
@@ -32,6 +33,7 @@ function parseEvents(ics) {
       end: field('DTEND'),
       summary: field('SUMMARY')?.value ?? '',
       location: field('LOCATION')?.value ?? '',
+      description: field('DESCRIPTION')?.value ?? '',
       rrule: field('RRULE')?.value ?? null,
     };
   });
@@ -168,6 +170,20 @@ const unescape = (s) =>
     .trim();
 
 /**
+ * A calendar description, as something a person can read.
+ *
+ * Google Calendar lets whoever writes the entry use rich text, so these arrive
+ * as HTML — the school's Maze Day entry is an entire <table> of last-name
+ * ranges. Two reasons to flatten it here rather than in the app: it is done
+ * once at sync time instead of on every render, and it means the app never
+ * inserts markup that came from a feed into the page.
+ *
+ * Block-level tags become line breaks first, because those carry the meaning:
+ * a table of times collapsed onto one line is unreadable.
+ */
+
+
+/**
  * Turn raw .ics text into the shape the app consumes.
  *  is returned rather than swallowed so the build script can
  * report what it ignored.
@@ -220,6 +236,10 @@ export function buildFeed(ics, { from, to }) {
       category: categorise(summary),
       ...(start.time ? { time: start.time } : {}),
       ...(e.location ? { location: unescape(e.location) } : {}),
+      // Whatever the school typed into the calendar entry. Capped because some
+      // entries carry a wall of boilerplate, and this is bundled into the app
+      // for offline use — a few long descriptions would bloat every download.
+      ...(e.description ? { description: htmlToText(e.description).slice(0, 400) } : {}),
     });
   }
 
