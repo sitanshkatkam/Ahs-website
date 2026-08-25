@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-25T10:51:15.974Z",
+  "generatedAt": "2026-08-25T23:17:12.337Z",
   "source": "American High School — Academics (public Google Calendar)",
   "schoolYear": "2026-08-01..2027-06-30",
   "scheduleOverrides": [
@@ -213,13 +213,15 @@
       "date": "2026-08-03",
       "title": "Maze Day",
       "category": "academic",
-      "time": "8:00 AM"
+      "time": "8:00 AM",
+      "description": "Juniors\nLast Names K-Q / 8 am - 9:30 am\nLast Names R-Z / 9:30 am - 11 am\nSophomores\nLast Names - A-C / 11:00 am - 12 pm\n*Freshmen Orientation\nLast Names A-L / 9 am - 1 pm\nFreshmen Maze\nLast Names A-L / 1:30 pm - 3:30 pm"
     },
     {
       "date": "2026-08-04",
       "title": "Maze Day",
       "category": "academic",
-      "time": "8:00 AM"
+      "time": "8:00 AM",
+      "description": "Sophomores\nLast Names D-N / 8 am - 10 am\nLast Names O-Z / 10 am - 12 pm\n\n*Freshmen Orientation\nLast Names M-Z / 9 am - 1 pm\nFreshmen Maze\nLast Names M-Z / 1:30 pm - 3:30 pm\n*Orientation is for students only"
     },
     {
       "date": "2026-08-11",
@@ -237,6 +239,18 @@
       "category": "social"
     },
     {
+      "date": "2026-08-27",
+      "title": "Busy",
+      "category": "other",
+      "time": "6:00 PM"
+    },
+    {
+      "date": "2026-10-05",
+      "endDate": "2026-10-09",
+      "title": "AHS Spirit Week",
+      "category": "social"
+    },
+    {
       "date": "2026-10-08",
       "title": "Spirit Week Night Rally",
       "category": "social"
@@ -247,9 +261,26 @@
       "category": "social"
     },
     {
+      "date": "2026-10-15",
+      "title": "Great CA Shakeout",
+      "category": "other"
+    },
+    {
+      "date": "2026-10-22",
+      "endDate": "2026-10-23",
+      "title": "Busy",
+      "category": "other"
+    },
+    {
       "date": "2026-12-10",
       "title": "Winter Concert",
       "category": "arts"
+    },
+    {
+      "date": "2027-02-04",
+      "title": "AHS Open House",
+      "category": "other",
+      "time": "6:00 PM"
     },
     {
       "date": "2027-03-04",
@@ -265,6 +296,11 @@
       "date": "2027-05-13",
       "title": "Final Concert",
       "category": "arts"
+    },
+    {
+      "date": "2027-05-20",
+      "title": "Senior Awards",
+      "category": "social"
     },
     {
       "date": "2027-06-01",
