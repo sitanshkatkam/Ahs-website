@@ -76,6 +76,57 @@ export type NotificationPrefs = {
   mealsAndBell: { on: boolean };
 };
 
+/**
+ * A club, as a student would describe one out loud: "Robotics, Tuesdays after
+ * school in 512".
+ *
+ * `weekday` and `week` only mean something for some frequencies — a daily club
+ * has no weekday, a weekly one has no week-of-month — but they are stored flat
+ * rather than in a discriminated union because a student switching a club from
+ * weekly to monthly should not lose the day they already picked.
+ */
+export type ClubFrequency = 'daily' | 'weekly' | 'monthly';
+
+/** 0 = Sunday, matching Date#getDay. */
+export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+/** Which occurrence in the month, for a monthly club. 5 means "last". */
+export type WeekOfMonth = 1 | 2 | 3 | 4 | 5;
+
+export type Club = {
+  id: string;
+  name: string;
+  frequency: ClubFrequency;
+  /** Ignored when frequency is 'daily'. */
+  weekday: Weekday;
+  /** Only used when frequency is 'monthly'. */
+  week: WeekOfMonth;
+  /** "HH:MM", 24h. Optional — plenty of clubs just say "after school". */
+  time?: string;
+  room?: string;
+};
+
+/** Short form, for the day-picker chips where space is tight. */
+export const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+
+/** Full form, for prose. "Tuesdays" reads; "Tues" does not. */
+export const WEEKDAY_FULL = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+] as const;
+export const WEEK_LABELS: Record<WeekOfMonth, string> = {
+  1: '1st',
+  2: '2nd',
+  3: '3rd',
+  4: '4th',
+  5: 'Last',
+};
+
 export type Settings = {
   version: number;
   classes: UserClass[];
@@ -96,6 +147,7 @@ export type Settings = {
   tourSeen: boolean;
   /** Zero / seventh period, with times the student supplies. */
   extraPeriods: ExtraPeriod[];
+  clubs: Club[];
   /**
    * Extra grade points for an honors course. Schools differ — AHS students
    * should check their own transcript. AP is always +1.
@@ -129,6 +181,7 @@ export const DEFAULT_SETTINGS: Settings = {
   installDismissed: false,
   tourSeen: false,
   extraPeriods: DEFAULT_EXTRA_PERIODS,
+  clubs: [],
 };
 
 /** Periods the student actually has: the core six, plus any enabled extras. */
@@ -199,6 +252,7 @@ function migrate(parsed: Partial<Settings>): Settings {
     extraPeriods: DEFAULT_EXTRA_PERIODS.map(
       (d) => parsed.extraPeriods?.find((e) => e?.period === d.period) ?? d,
     ),
+    clubs: Array.isArray(parsed.clubs) ? parsed.clubs : [],
   };
 }
 

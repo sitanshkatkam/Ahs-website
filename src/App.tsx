@@ -4,6 +4,7 @@ import { CalendarScreen } from './screens/CalendarScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { ClassesScreen } from './screens/ClassesScreen';
 import { CollegeScreen } from './screens/CollegeScreen';
+import { ClubsScreen } from './screens/ClubsScreen';
 import { Onboarding } from './screens/Onboarding';
 import { useNow } from './lib/useNow';
 import { toISODate } from './lib/date';
@@ -21,7 +22,7 @@ import { registerPush, unregisterPush } from './lib/push';
 import { loadLiveFeed } from './lib/liveFeed';
 import { Tour } from './components/Tour';
 
-type Tab = 'today' | 'calendar' | 'classes' | 'college' | 'settings';
+type Tab = 'today' | 'calendar' | 'classes' | 'clubs' | 'college' | 'settings';
 
 export default function App() {
   const [settings, setSettings] = useState<Settings>(loadSettings);
@@ -220,6 +221,9 @@ export default function App() {
           {tab === 'classes' && (
             <ClassesScreen settings={settings} update={update} />
           )}
+          {tab === 'clubs' && (
+            <ClubsScreen today={today} settings={settings} update={update} />
+          )}
           {tab === 'college' && (
             <CollegeScreen today={today} settings={settings} update={update} />
           )}
@@ -258,6 +262,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'today', label: 'Today', icon: '◉' },
   { id: 'calendar', label: 'Calendar', icon: '▦' },
   { id: 'classes', label: 'Classes', icon: '✎' },
+  { id: 'clubs', label: 'Clubs', icon: '✦' },
   { id: 'college', label: 'College', icon: '◆' },
   { id: 'settings', label: 'Settings', icon: '⚙' },
 ];

@@ -16,7 +16,13 @@ import type { Settings } from './storage';
  */
 
 /** The fields that travel. Everything not listed here is device-local. */
-const SYNCED_KEYS = ['classes', 'gradeLevel', 'extraPeriods', 'customOverrides'] as const;
+const SYNCED_KEYS = [
+  'classes',
+  'gradeLevel',
+  'extraPeriods',
+  'customOverrides',
+  'clubs',
+] as const;
 
 export type SyncedSchedule = Pick<Settings, (typeof SYNCED_KEYS)[number]>;
 
@@ -35,6 +41,7 @@ export function pickSynced(settings: Settings): SyncedSchedule {
     gradeLevel: settings.gradeLevel,
     extraPeriods: settings.extraPeriods,
     customOverrides: settings.customOverrides,
+    clubs: settings.clubs,
   };
 }
 

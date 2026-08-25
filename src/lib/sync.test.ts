@@ -17,6 +17,7 @@ const full: Settings = {
   extraPeriods: [{ period: 0, enabled: true, start: '07:30', end: '08:25' }],
   customOverrides: [{ date: '2027-03-11', scheduleId: 'rally', label: 'Changed by you' }],
   grades: [{ period: 1, semester: 's1', letter: 'A' }],
+  clubs: [{ id: 'c1', name: 'Robotics', frequency: 'weekly', weekday: 2, week: 1, room: '512' }],
   theme: 'dark',
 };
 
@@ -44,13 +45,21 @@ describe('what syncs', () => {
     expect(out.installDismissed).toBeUndefined();
   });
 
-  it('sends exactly four keys, so nothing joins by accident', () => {
+  it('sends exactly these keys, so nothing joins by accident', () => {
+    // This list is the privacy promise in code form. Anything added here has to
+    // be a deliberate decision, and has to be reflected on the privacy page.
     expect(Object.keys(pickSynced(full)).sort()).toEqual([
       'classes',
+      'clubs',
       'customOverrides',
       'extraPeriods',
       'gradeLevel',
     ]);
+  });
+
+  it('carries clubs, which are schedule rather than secret', () => {
+    expect(pickSynced(full).clubs).toEqual(full.clubs);
+    expect(touchesSchedule({ clubs: [] })).toBe(true);
   });
 });
 
