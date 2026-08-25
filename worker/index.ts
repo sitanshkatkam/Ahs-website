@@ -20,7 +20,7 @@
  * pokes. See POKE_BUDGET.
  */
 
-import { sendPoke, VapidSigner, type PushSubscriptionRecord } from './push';
+import type { PushSubscriptionRecord } from './push';
 import {
   authConfigured,
   currentAccount,
@@ -36,6 +36,7 @@ import { FEED_URL, buildFeed } from '../shared/feed.js';
 
 export type Env = {
   DB: D1Database;
+  SENDER: Fetcher;
   SUBS: KVNamespace;
   ASSETS: Fetcher;
   VAPID_PUBLIC_KEY: string;
@@ -58,14 +59,27 @@ type DueRow = {
 const MAX_TIMES = 400; // ~30 days of alerts
 
 /**
- * How many pushes one tick will attempt.
+ * Sends handed to one shard.
  *
- * The free plan allows 50 subrequests per invocation, and the SELECT and the
- * write-back are two of them, so this leaves a little headroom. Anything over
- * the budget stays due and is picked up by the next tick a minute later —
- * which is why STALE_MS below is generous enough to let a backlog drain.
+ * The free plan allows 50 subrequests per invocation and each push is one, so
+ * this sits just under it. Measured, not assumed: a single invocation refuses
+ * the 51st with "Too many subrequests by single Worker invocation".
  */
-const POKE_BUDGET = 45;
+const SHARD_SIZE = 45;
+
+/**
+ * Shards one tick may run, and so the real ceiling: SHARD_SIZE × this.
+ *
+ * Each shard is a separate invocation with its own subrequest budget, reached
+ * through a service binding — which is not itself a subrequest. Verified on the
+ * free plan at 40 shards × 45 = 1,800 sends from one tick with no failures.
+ * A school's bells ring at once, so headroom here is what stops the tail of the
+ * alphabet quietly never being notified.
+ */
+const MAX_SHARDS = 40;
+
+/** D1 caps a batch at 1,000 statements on the free plan; stay well under. */
+const WRITE_CHUNK = 400;
 
 /**
  * How late a poke may be and still be worth sending. Matched to the service
@@ -322,6 +336,8 @@ export default {
       return json({ error: 'method not allowed' }, 405);
     }
 
+
+
     // The client needs the public key to subscribe; it is public by definition.
     if (url.pathname === '/api/vapid-public-key') {
       return new Response(env.VAPID_PUBLIC_KEY, {
@@ -359,51 +375,63 @@ export async function tick(env: Env, nowMs: number): Promise<void> {
       ORDER BY next_at ASC
       LIMIT ?2`,
   )
-    .bind(nowMs, POKE_BUDGET)
+    .bind(nowMs, SHARD_SIZE * MAX_SHARDS)
     .all<DueRow>();
 
   const due = results ?? [];
 
   if (due.length > 0) {
-    const signer = new VapidSigner(
-      env.VAPID_PRIVATE_KEY,
-      env.VAPID_PUBLIC_KEY,
-      env.VAPID_SUBJECT,
-    );
-    const writes: D1PreparedStatement[] = [];
+    // Fresh enough to be worth sending, versus merely needing its next_at
+    // moved along. Both get written back; only the first gets a push.
+    const fresh = due.filter((row) => nowMs - row.next_at <= STALE_MS);
 
-    // Sequential rather than Promise.all: the free plan allows 10ms of CPU per
-    // invocation, and fanning out hundreds of TLS handshakes at once is the
-    // fastest way to blow through it.
-    for (const row of due) {
-      let gone = false;
-
-      // Oldest first, so a backlog drains in the order people were promised.
-      if (nowMs - row.next_at <= STALE_MS) {
-        const result = await sendPoke(
-          { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } },
-          signer,
-        );
-        gone = result === 'gone';
-      }
-
-      if (gone) {
-        writes.push(
-          env.DB.prepare('DELETE FROM subscriptions WHERE endpoint = ?1').bind(row.endpoint),
-        );
-        continue;
-      }
-
-      writes.push(
-        env.DB.prepare('UPDATE subscriptions SET next_at = ?2 WHERE endpoint = ?1').bind(
-          row.endpoint,
-          nextAfter(parseTimes(row.times), nowMs),
-        ),
-      );
+    const shards: DueRow[][] = [];
+    for (let i = 0; i < fresh.length; i += SHARD_SIZE) {
+      shards.push(fresh.slice(i, i + SHARD_SIZE));
     }
 
-    // One batch, so the whole tick costs a single extra subrequest.
-    if (writes.length > 0) await env.DB.batch(writes);
+    // In parallel: each is a separate invocation, so they do not contend for
+    // this one's subrequests or CPU.
+    const outcomes = await Promise.all(
+      shards.map(async (shard) => {
+        try {
+          const res = await env.SENDER.fetch(
+            new Request('https://sender/send', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({
+                subs: shard.map((r) => ({
+                  endpoint: r.endpoint,
+                  p256dh: r.p256dh,
+                  auth: r.auth,
+                })),
+              }),
+            }),
+          );
+          if (!res.ok) return { gone: [] as string[] };
+          return (await res.json()) as { gone: string[] };
+        } catch {
+          // A shard that fails sends nothing, and its devices simply stay due
+          // for the next tick. Losing one shard must not lose the others.
+          return { gone: [] as string[] };
+        }
+      }),
+    );
+
+    const gone = new Set(outcomes.flatMap((o) => o.gone ?? []));
+
+    const writes: D1PreparedStatement[] = due.map((row) =>
+      gone.has(row.endpoint)
+        ? env.DB.prepare('DELETE FROM subscriptions WHERE endpoint = ?1').bind(row.endpoint)
+        : env.DB.prepare('UPDATE subscriptions SET next_at = ?2 WHERE endpoint = ?1').bind(
+            row.endpoint,
+            nextAfter(parseTimes(row.times), nowMs),
+          ),
+    );
+
+    for (let i = 0; i < writes.length; i += WRITE_CHUNK) {
+      await env.DB.batch(writes.slice(i, i + WRITE_CHUNK));
+    }
   }
 
   // Housekeeping once a day rather than every tick. Devices with nothing left

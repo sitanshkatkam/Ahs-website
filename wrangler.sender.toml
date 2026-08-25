@@ -1,0 +1,12 @@
+# The push fan-out worker. Deployed separately from the app so that each call
+# into it is a fresh invocation with its own subrequest budget.
+name = "ahs-sender"
+main = "worker/sender.ts"
+compatibility_date = "2026-04-16"
+
+# The public half and the contact address are not secrets — they travel in
+# every signed request. The private key is set with:
+#   npx wrangler secret put VAPID_PRIVATE_KEY --config wrangler.sender.toml
+[vars]
+VAPID_PUBLIC_KEY = "BNu7sDx1aarCJbiLkSrlZ3pmS6-INQ26JKMw5XKoB4pXg7VKJj-MoaUwCllzqkcAJJuAZ8eWcekbLSDjES2w8xM"
+VAPID_SUBJECT = "mailto:vihaan5147@gmail.com"

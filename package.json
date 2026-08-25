@@ -14,6 +14,7 @@
     "qr": "node scripts/make-qr.mjs",
     "sync:calendar": "node scripts/sync-calendar.mjs",
     "deploy": "node scripts/deploy.mjs",
+    "deploy:sender": "wrangler deploy --config wrangler.sender.toml",
     "icons": "node scripts/make-icons.mjs",
     "stats": "node scripts/stats.mjs"
   },

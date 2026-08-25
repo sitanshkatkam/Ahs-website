@@ -53,3 +53,9 @@ migrations_dir = "migrations"
 [[kv_namespaces]]
 binding = "SUBS"
 id = "1b2a657c8d2e41f3b7a81eee3f2f3865"
+
+# The push fan-out worker. A service binding call is not a subrequest and
+# starts a fresh invocation, so each shard handed over gets its own budget.
+[[services]]
+binding = "SENDER"
+service = "ahs-sender"

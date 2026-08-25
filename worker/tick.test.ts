@@ -1,20 +1,19 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-
-const sendPoke = vi.hoisted(() => vi.fn(async () => 'ok' as const));
-vi.mock('./push', async (original) => ({
-  ...(await original<typeof import('./push')>()),
-  sendPoke,
-}));
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import { nextAfter, tick, type Env } from './index';
 
 /**
- * Subscriptions moved from a single KV blob to a row per device. The failure
- * this guards against is specific and silent: a device whose `next_at` falls
- * behind — because a tick was missed, or because the send budget ran out — must
- * still get advanced. If it doesn't, that row stays permanently overdue, is
- * never poked again, and one student's notifications stop forever with nothing
- * in any log to say so.
+ * Two silent failures are guarded here.
+ *
+ * A device whose `next_at` falls behind — because a tick was missed, or a shard
+ * failed — must still get advanced. Otherwise that row stays permanently
+ * overdue, is never poked again, and one student's notifications stop forever
+ * with nothing in any log to say so.
+ *
+ * And sends must be spread across shards. One Worker invocation may make 50
+ * subrequests and each push is one, so an unsharded tick stops at ~45 students
+ * and the rest are dropped without an error — which, when a whole school's
+ * bells ring at once, is most of the school.
  */
 
 const MIN = 60_000;
@@ -47,6 +46,21 @@ function fakeDB(rows: Record<string, unknown>[]) {
   };
 
   return { db: db as unknown as D1Database, executed };
+}
+
+/** Stands in for the SENDER service binding. */
+function fakeSender(opts: { gone?: string[]; fail?: boolean } = {}) {
+  const calls: { subs: { endpoint: string }[] }[] = [];
+  const fetcher = {
+    fetch: async (req: Request) => {
+      if (opts.fail) throw new Error('shard unreachable');
+      const body = (await req.json()) as { subs: { endpoint: string }[] };
+      calls.push(body);
+      const gone = (opts.gone ?? []).filter((e) => body.subs.some((s) => s.endpoint === e));
+      return new Response(JSON.stringify({ sent: body.subs.length - gone.length, gone }));
+    },
+  };
+  return { fetcher: fetcher as unknown as Fetcher, calls };
 }
 
 const row = (over: Partial<Record<string, unknown>> = {}) => ({
@@ -83,9 +97,10 @@ beforeAll(async () => {
   };
 });
 
-const envWith = (db: D1Database): Env =>
+const envWith = (db: D1Database, sender?: Fetcher): Env =>
   ({
     DB: db,
+    SENDER: sender ?? fakeSender().fetcher,
     SUBS: {} as KVNamespace,
     ASSETS: {} as Fetcher,
     VAPID_PUBLIC_KEY: keys.pub,
@@ -95,8 +110,6 @@ const envWith = (db: D1Database): Env =>
 
 const writes = (executed: Recorded[]) =>
   executed.filter((e) => /UPDATE|DELETE|INSERT/.test(e.sql));
-
-beforeEach(() => sendPoke.mockClear());
 
 describe('nextAfter', () => {
   it('finds the first moment still ahead', () => {
@@ -112,13 +125,13 @@ describe('nextAfter', () => {
 describe('tick', () => {
   it('pokes a device whose alarm just came due', async () => {
     const { db, executed } = fakeDB([row()]);
-    await tick(envWith(db), NOW);
+    const sender = fakeSender();
+    await tick(envWith(db, sender.fetcher), NOW);
 
-    expect(sendPoke).toHaveBeenCalledTimes(1);
-    expect(sendPoke.mock.calls[0][0]).toMatchObject({
-      endpoint: 'https://fcm.googleapis.com/fcm/send/one',
-      keys: { p256dh: 'pub', auth: 'auth' },
-    });
+    expect(sender.calls).toHaveLength(1);
+    expect(sender.calls[0].subs).toEqual([
+      { endpoint: 'https://fcm.googleapis.com/fcm/send/one', p256dh: 'pub', auth: 'auth' },
+    ]);
     expect(writes(executed)[0].params).toEqual([
       'https://fcm.googleapis.com/fcm/send/one',
       NOW + 30 * MIN,
@@ -129,9 +142,11 @@ describe('tick', () => {
     // The regression that would silence a phone for good. No poke — the alert
     // stopped being true half an hour ago — but the row must still move on.
     const { db, executed } = fakeDB([row({ next_at: NOW - 30 * MIN })]);
-    await tick(envWith(db), NOW);
+    const sender = fakeSender();
+    await tick(envWith(db, sender.fetcher), NOW);
 
-    expect(sendPoke).not.toHaveBeenCalled();
+    // Nothing sent — but the row is still advanced below.
+    expect(sender.calls).toHaveLength(0);
     expect(writes(executed)).toHaveLength(1);
     expect(writes(executed)[0].params[1]).toBe(NOW + 30 * MIN);
   });
@@ -146,19 +161,41 @@ describe('tick', () => {
     expect(select.sql).toContain('ORDER BY next_at ASC');
   });
 
-  it('caps a tick at the subrequest budget', async () => {
-    const { db, executed } = fakeDB([]);
-    await tick(envWith(db), NOW);
-    const select = executed.find((e) => e.sql.includes('SELECT'))!;
-    // Two subrequests go to the SELECT and the write-back; the rest are sends,
-    // and the free plan allows 50 per invocation.
-    expect(select.params[1]).toBeLessThanOrEqual(48);
+  it('splits a bell-sized crowd into shards under the subrequest limit', async () => {
+    // 300 students due at once: one invocation could send ~45 before Cloudflare
+    // refused the rest, so the work has to be spread across shards.
+    const many = Array.from({ length: 300 }, (_, i) =>
+      row({ endpoint: `https://fcm.googleapis.com/fcm/send/s${i}` }),
+    );
+    const { db } = fakeDB(many);
+    const sender = fakeSender();
+    await tick(envWith(db, sender.fetcher), NOW);
+
+    expect(sender.calls.length).toBeGreaterThan(1);
+    for (const call of sender.calls) expect(call.subs.length).toBeLessThanOrEqual(45);
+
+    const delivered = sender.calls.reduce((n, c) => n + c.subs.length, 0);
+    expect(delivered).toBe(300);
+  });
+
+  it('advances every row even when a shard fails outright', async () => {
+    // A shard that throws must not strand its devices permanently overdue, and
+    // must not take the other shards down with it.
+    const many = Array.from({ length: 60 }, (_, i) =>
+      row({ endpoint: `https://fcm.googleapis.com/fcm/send/f${i}` }),
+    );
+    const { db, executed } = fakeDB(many);
+    await tick(envWith(db, fakeSender({ fail: true }).fetcher), NOW);
+
+    const updates = writes(executed);
+    expect(updates).toHaveLength(60);
+    for (const u of updates) expect(u.params[1]).toBe(NOW + 30 * MIN);
   });
 
   it('drops a device the push service says is gone', async () => {
-    sendPoke.mockResolvedValueOnce('gone' as never);
     const { db, executed } = fakeDB([row()]);
-    await tick(envWith(db), NOW);
+    const sender = fakeSender({ gone: ['https://fcm.googleapis.com/fcm/send/one'] });
+    await tick(envWith(db, sender.fetcher), NOW);
 
     const w = writes(executed);
     expect(w).toHaveLength(1);
@@ -182,8 +219,9 @@ describe('tick', () => {
 
   it('does nothing at all when nobody is due', async () => {
     const { db, executed } = fakeDB([]);
-    await tick(envWith(db), NOW);
-    expect(sendPoke).not.toHaveBeenCalled();
+    const sender = fakeSender();
+    await tick(envWith(db, sender.fetcher), NOW);
+    expect(sender.calls).toHaveLength(0);
     expect(writes(executed)).toHaveLength(0);
   });
 
