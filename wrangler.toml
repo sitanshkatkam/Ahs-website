@@ -2,6 +2,22 @@ name = "ahs-schedule"
 main = "worker/index.ts"
 compatibility_date = "2026-04-16"
 
+# The real address. Cloudflare creates the DNS records and the certificate for
+# a custom_domain route itself; the workers.dev address keeps working alongside
+# it, which matters because anyone who installed the app from the old one is
+# still living there — a browser treats the two as separate origins.
+routes = [
+  { pattern = "ahsbell.com", custom_domain = true },
+  { pattern = "www.ahsbell.com", custom_domain = true },
+]
+
+# Explicit, because declaring any route silently turns this off — and turning
+# it off breaks every phone that installed the app from the workers.dev address
+# and every QR code already printed. A browser treats the two hostnames as
+# separate origins, so the old one has to keep answering for as long as anyone
+# is still installed there.
+workers_dev = true
+
 # The built PWA. Anything the Worker doesn't handle as /api/* is served from here.
 [assets]
 directory = "./dist"

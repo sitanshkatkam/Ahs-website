@@ -183,7 +183,7 @@ npm run deploy
 Then make the share QR:
 
 ```bash
-npm run qr https://ahs-schedule.<your-subdomain>.workers.dev
+npm run qr    # uses appUrl from package.json
 ```
 
 That writes `share/qr.svg` and `share/qr.png`. Anyone who scans it lands on the app and can

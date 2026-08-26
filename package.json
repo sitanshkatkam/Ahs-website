@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "_comment_appUrl": "The address on posters and in the share sheet. One definition: vite.config.ts hands it to the client and scripts/make-qr.mjs encodes it.",
-  "appUrl": "https://tinyurl.com/ahs-bell",
+  "appUrl": "https://ahsbell.com",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
