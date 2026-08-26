@@ -6,9 +6,15 @@ compatibility_date = "2026-04-16"
 # a custom_domain route itself; the workers.dev address keeps working alongside
 # it, which matters because anyone who installed the app from the old one is
 # still living there — a browser treats the two as separate origins.
+# One hostname only. www would be a *separate origin* to a browser: its own
+# localStorage, its own install, its own push subscription, and its own OAuth
+# redirect URI to keep registered — so a student who installed from one would
+# find the other empty. Redirecting it here is not possible either, because
+# run_worker_first only covers /api/*, so the asset layer answers "/" before
+# this Worker runs. If www should ever resolve, it wants a Redirect Rule in the
+# Cloudflare dashboard, which runs ahead of both.
 routes = [
   { pattern = "ahsbell.com", custom_domain = true },
-  { pattern = "www.ahsbell.com", custom_domain = true },
 ]
 
 # Explicit, because declaring any route silently turns this off — and turning
