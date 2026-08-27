@@ -23,9 +23,14 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.ts',
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png'],
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // The install-time icons are large and the OS fetches them once, when
+        // someone adds the app to their home screen. Precaching them would put
+        // half a megabyte into every first load to save a request that most
+        // people never make.
+        globIgnores: ['**/icon-512.png', '**/icon-maskable-512.png'],
       },
       manifest: {
         name: 'American High Schedule',

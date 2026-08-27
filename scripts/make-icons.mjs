@@ -1,79 +1,51 @@
 /**
- * Generate every app icon from one source of truth.
+ * Generate every app icon from one source image.
  *
  *   node scripts/make-icons.mjs
  *
- * An eagle with AHS in front of it. The lettering is drawn as geometry rather
- * than text on purpose: a font would render differently depending on what's
- * installed and can vanish entirely when rasterized headlessly.
+ * Source: brand/logo-source.png — the eagle crest on a navy rounded square.
  *
- * Four shapes come out of this, and the differences matter:
- *   - rounded square  : favicon and the standard PWA icons
- *   - full bleed      : maskable, where the OS crops to its own shape, so the
- *                       art has to sit inside the inner ~80% safe zone
- *   - square          : apple-touch-icon, because iOS applies its own rounding
- *                       and pre-rounded corners would be masked twice
- *   - badge           : alpha only, see below
+ * Three things the source can't be used for as-is, and what is done about each:
+ *
+ *  - It sits on white. The rounded corners are painted into the artwork, so
+ *    dropping it straight into an icon leaves white wedges once iOS or Android
+ *    applies its own rounding on top. Everything below is drawn on a full-bleed
+ *    navy field and the source is scaled past the edges so those corners fall
+ *    outside the canvas.
+ *  - Maskable icons get cropped to whatever shape the launcher likes, so the
+ *    art has to sit inside the middle ~80%.
+ *  - A notification badge is alpha only: Android throws the colours away and
+ *    renders whatever is opaque. Feeding it this image would produce a solid
+ *    white square. The badge is built separately, as a silhouette of the eagle
+ *    with the background knocked out.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { PNG } from 'pngjs';
 import { Resvg } from '@resvg/resvg-js';
 
-const BG = '#191c22'; // matches the app's dark background and theme-color
-const EAGLE = '#3f6ea8';
-const TEXT = '#ffffff';
+const SOURCE = path.join('brand', 'logo-source.png');
+const NAVY = '#00184a'; // sampled from the source background
 
-/** Wings, head, beak and tail. Angular rather than feathered — detail is mush at 48px. */
-const eagle = `
-  <g fill="${EAGLE}">
-    <path d="M256 205 L330 168 L317 200 L392 156 L373 196 L452 158 L419 214 L463 206 L409 253 L256 253 Z"/>
-    <path d="M256 205 L182 168 L195 200 L120 156 L139 196 L60 158 L93 214 L49 206 L103 253 L256 253 Z"/>
-    <circle cx="256" cy="150" r="33"/>
-    <path d="M283 150 L312 160 L283 172 Z"/>
-    <path d="M226 236 L286 236 L272 392 L256 428 L240 392 Z"/>
-  </g>`;
+/** The rounded corners occupy the outer ~8%; overscan pushes them off-canvas. */
+const OVERSCAN = 1.2;
+/** Maskable safe zone: art must survive an aggressive circular crop. */
+const MASKABLE_SCALE = 0.66;
 
-/** A and H are polylines; S is a stroked curve. No font dependency anywhere. */
-const ahs = `
-  <g fill="none" stroke="${TEXT}" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M126 402 L164 292 L202 402 M141 366 H187"/>
-    <path d="M220 292 V402 M296 292 V402 M220 347 H296"/>
-    <path d="M386 316 C386 298 366 290 348 290 C326 290 314 302 314 318 C314 334 328 342 346 346
-             C376 352 386 362 386 378 C386 394 370 402 350 402 C330 402 314 393 314 375"/>
-  </g>`;
+const dataUri = `data:image/png;base64,${fs.readFileSync(SOURCE).toString('base64')}`;
 
 /**
- * The notification badge: the small glyph Android puts in the status bar.
- *
- * Alpha only, and that is the whole point. Android discards a badge's colours
- * and renders whatever is opaque, so an image with a filled background arrives
- * as a solid white rectangle — which is exactly what using the app icon here
- * produced. No background rect, therefore, and the art is drawn in white
- * purely so it is visible if anything ever previews it uncropped.
- *
- * Just the eagle. At 24dp the AHS lettering is three illegible smudges, and a
- * badge that reads as a blob is worse than one that reads as a bird.
+ * @param {number} scale 1 = source fills the canvas exactly
+ * @param {string} bg
  */
-function badgeSvg() {
-  const white = eagle.replace(EAGLE, '#ffffff');
-  // The eagle occupies roughly x 49-463, y 117-428 of the 512 box, so it is
-  // scaled up and re-centred to actually fill the badge.
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <g transform="translate(256,256) scale(1.12) translate(-256,-272)">${white}</g>
-</svg>`;
-}
-
-/**
- * @param {'rounded'|'bleed'|'square'} shape
- * @param {number} scale art scale; maskable shrinks into the safe zone
- */
-function svg(shape, scale = 1) {
-  const radius = shape === 'rounded' ? 112 : 0;
-  const art = scale === 1 ? `${eagle}${ahs}` : `<g transform="translate(256,256) scale(${scale}) translate(-256,-256)">${eagle}${ahs}</g>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="${radius}" fill="${BG}"/>
-  ${art}
+function svg(scale, bg = NAVY) {
+  const size = 1024;
+  const drawn = size * scale;
+  const offset = (size - drawn) / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+  <rect width="${size}" height="${size}" fill="${bg}"/>
+  <image x="${offset}" y="${offset}" width="${drawn}" height="${drawn}" xlink:href="${dataUri}"/>
 </svg>`;
 }
 
@@ -83,13 +55,101 @@ function png(source, size, file) {
   console.log(`  ${file.padEnd(24)} ${size}x${size}  ${(out.length / 1024).toFixed(1)} KB`);
 }
 
-console.log('Writing icons to public/');
-fs.writeFileSync(path.join('public', 'favicon.svg'), `${svg('rounded')}\n`);
-console.log('  favicon.svg              vector');
+/**
+ * The notification badge: the eagle alone, as pure alpha.
+ *
+ * Cropped from the source and knocked out by luminance — the crest is white and
+ * red on navy, so anything appreciably brighter than the background becomes
+ * opaque and everything else disappears. The text is left out entirely: at 24dp
+ * "AMERICAN HIGH" is a grey smear.
+ */
+function badge(size, file) {
+  const src = PNG.sync.read(fs.readFileSync(SOURCE));
+  /*
+    The head, not the whole crest. The full bird is roughly 2.5:1, so fitting it
+    into a square badge letterboxes it down to something tiny at 24dp. The head
+    is close to square, is the half anybody recognises, and fills the space.
+  */
+  const box = { x: 620, y: 425, w: 430, h: 340 };
+  const side = Math.max(box.w, box.h);
+  const out = new PNG({ width: size, height: size });
 
-png(svg('rounded'), 192, 'icon-192.png');
-png(svg('rounded'), 512, 'icon-512.png');
-// 0.78 keeps the art clear of whatever shape Android crops to.
-png(svg('bleed', 0.78), 512, 'icon-maskable-512.png');
-png(svg('square'), 180, 'apple-touch-icon.png');
-png(badgeSvg(), 96, 'badge-96.png');
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      // Map the destination square back into the source crop, centring the
+      // wider-than-tall eagle vertically.
+      const sx = Math.round(box.x + (x / size) * side - (side - box.w) / 2);
+      const sy = Math.round(box.y + (y / size) * side - (side - box.h) / 2);
+      const o = (size * y + x) * 4;
+
+      /*
+        Anything outside the crop is transparent, and the check has to be
+        against the box rather than the image. The eagle is wide and short, so
+        squaring it up reaches far above and below — far enough to drag in the
+        "AMERICAN HIGH" lettering underneath, which at 24dp is a row of
+        unreadable specks stuck to the bird.
+      */
+      if (
+        sx < box.x ||
+        sy < box.y ||
+        sx >= box.x + box.w ||
+        sy >= box.y + box.h ||
+        sx >= src.width ||
+        sy >= src.height
+      ) {
+        out.data[o + 3] = 0;
+        continue;
+      }
+      const i = (src.width * sy + sx) * 4;
+      const [r, g, b] = [src.data[i], src.data[i + 1], src.data[i + 2]];
+      // Navy is dark and blue-dominant; the crest is neither.
+      const isBackground = b > r + 20 && r < 90;
+      out.data[o] = 255;
+      out.data[o + 1] = 255;
+      out.data[o + 2] = 255;
+      out.data[o + 3] = isBackground ? 0 : 255;
+    }
+  }
+
+  const buf = PNG.sync.write(out);
+  fs.writeFileSync(path.join('public', file), buf);
+  const opaque = out.data.filter((_, i) => i % 4 === 3 && out.data[i] > 0).length;
+  console.log(
+    `  ${file.padEnd(24)} ${size}x${size}  ${(buf.length / 1024).toFixed(1)} KB  ` +
+      `${((100 * opaque) / (size * size)).toFixed(0)}% opaque`,
+  );
+}
+
+console.log('Writing icons to public/');
+/*
+  A small raster favicon, not an SVG. The obvious move — wrap the source in an
+  <svg> and ship that — inlines the 1.2 MB PNG as base64 and drops a 1.7 MB file
+  into the precache, which is most of the app's download spent on a 16px tab
+  icon.
+*/
+png(svg(OVERSCAN), 64, 'favicon.png');
+
+png(svg(OVERSCAN), 192, 'icon-192.png');
+png(svg(OVERSCAN), 512, 'icon-512.png');
+png(svg(OVERSCAN), 180, 'apple-touch-icon.png');
+
+/*
+  The maskable is built from the *cleaned* icon, not the raw source. Shrinking
+  the source into the safe zone directly brings its painted-on white corners
+  along with it, and they land in full view as four white wedges around the
+  art. Overscanning first throws those away; only then is it safe to scale down.
+*/
+const cleaned = new Resvg(svg(OVERSCAN), { fitTo: { mode: 'width', value: 1024 } })
+  .render()
+  .asPng();
+const cleanedUri = `data:image/png;base64,${cleaned.toString('base64')}`;
+const inset = (1024 * (1 - MASKABLE_SCALE)) / 2;
+png(
+  `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="${NAVY}"/>
+  <image x="${inset}" y="${inset}" width="${1024 * MASKABLE_SCALE}" height="${1024 * MASKABLE_SCALE}" xlink:href="${cleanedUri}"/>
+</svg>`,
+  512,
+  'icon-maskable-512.png',
+);
+badge(96, 'badge-96.png');
