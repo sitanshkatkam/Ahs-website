@@ -53,6 +53,31 @@ export default function App() {
     });
   }, []);
 
+  /*
+    College is for juniors and seniors. A freshman has nothing to do on it for
+    two years, and a tab that is dead weight for half the school is worse than
+    one fewer tab — it also buys back room in a bar that is already carrying
+    six. Grade is asked during onboarding, so this is known from the first run;
+    if it somehow isn't set, the tab shows rather than hides, since guessing
+    someone out of a feature is worse than guessing them into it.
+  */
+  const visibleTabs = useMemo(
+    () =>
+      TABS.filter(
+        (t) =>
+          t.id !== 'college' ||
+          settings.gradeLevel === undefined ||
+          settings.gradeLevel >= 11,
+      ),
+    [settings.gradeLevel],
+  );
+
+  // Someone who switches from 12th to 9th while standing on College would
+  // otherwise be left on a screen with no way back to it in the bar.
+  useEffect(() => {
+    if (!visibleTabs.some((t) => t.id === tab)) setTab('today');
+  }, [visibleTabs, tab]);
+
   // Theme: explicit choice wins, otherwise fall through to prefers-color-scheme.
   useEffect(() => {
     const root = document.documentElement;
@@ -237,7 +262,7 @@ export default function App() {
         </div>
       </main>
 
-      <TabBar tab={tab} setTab={setTab} />
+      <TabBar tab={tab} setTab={setTab} tabs={visibleTabs} />
       <Tour open={tourOpen} onClose={closeTour} />
     </div>
   );
@@ -275,10 +300,18 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
  * movement rather than a blink. The outer wrapper ignores pointer events so
  * content can still be tapped either side of the island.
  */
-function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
+function TabBar({
+  tab,
+  setTab,
+  tabs,
+}: {
+  tab: Tab;
+  setTab: (t: Tab) => void;
+  tabs: typeof TABS;
+}) {
   const index = Math.max(
     0,
-    TABS.findIndex((t) => t.id === tab),
+    tabs.findIndex((t) => t.id === tab),
   );
 
   return (
@@ -294,13 +327,13 @@ function TabBar({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
           aria-hidden
           className="absolute bottom-1 left-1 top-1 rounded-[18px] bg-surface-2"
           style={{
-            width: `calc((100% - 0.5rem) / ${TABS.length})`,
+            width: `calc((100% - 0.5rem) / ${tabs.length})`,
             transform: `translateX(calc(${index} * 100%))`,
             transition: 'transform 340ms cubic-bezier(0.32, 0.72, 0, 1)',
           }}
         />
 
-        {TABS.map((t) => {
+        {tabs.map((t) => {
           const active = tab === t.id;
           return (
             <li key={t.id} className="relative flex-1">

@@ -6,10 +6,13 @@ Built for American High School in Fremont (FUSD), where the bell schedule rotate
 six-period days, two flavours of block day, rally days, minimum days and finals — and the
 only official source is a PDF that's miserable to read on a phone.
 
-No account. Your classes, grades and settings are stored only on your own device.
-The one exception is opt-in notifications: turning those on sends an anonymous list
-of *times* to a Cloudflare Worker so it knows when to wake your phone. It is never
-told what any of them are for — the notification text is composed on-device.
+Live at **https://ahsbell.com**.
+
+Sign in with Google carries your schedule between devices — classes, clubs, grade level and
+notification settings. Your **grades never leave the phone that entered them**. Opt-in
+notifications send the server an anonymous list of *times* so it knows when to wake your
+phone; it is never told what any of them are for, because the notification text is composed
+on-device.
 
 ---
 
@@ -17,15 +20,18 @@ told what any of them are for — the notification text is composed on-device.
 
 - **Today** — a live ring showing the current period, the room, and time left. It knows the
   difference between "in class", "passing period", "before school" and "done", and says so.
-  Below it: what's due soon, and what's coming up.
-- **Calendar** — a month grid colour-coded by schedule type; tap any day for its full bell
-  schedule and events.
-- **Classes** — weighted and unweighted GPA, per-class grades by semester, and an assignment
-  list per class.
+  Once the last bell goes it previews the next school day instead. Below it, what's coming up;
+  tap any event for its time, place and the school's own description.
+- **Calendar** — a month grid where each school day is washed in its schedule's colour; tap
+  any day for its full bell schedule and events.
+- **Classes** — weighted and unweighted GPA, and per-class grades by semester.
+- **Clubs** — what you're in, when it meets and where, with anything meeting today at the top.
+  Daily, weekly, or monthly on a given weekday ("3rd Thursday").
 - **College** — countdown to the next SAT/ACT, application and aid deadlines, and a checklist
-  for your grade level.
-- **Settings** — your six classes, notification toggles, event filters, theme, and a place to
-  add schedule changes the school announces mid-year.
+  for your grade level. **Shown to juniors and seniors only**; there is nothing on it for a
+  freshman for two years.
+- **Settings** — your classes, notification toggles, event filters, theme, your account, and a
+  place to add schedule changes the school announces mid-year.
 
 ## GPA
 
@@ -50,7 +56,6 @@ Four independent toggles, all off by default:
 | Class starting soon | 2 / 5 / 10 / 15 min before each period |
 | Tomorrow's schedule | evening before a block, rally, minimum or finals day |
 | Upcoming events | 1 / 2 / 3 / 7 days before a calendar event |
-| Assignments due | one digest, not a buzz per task |
 | Brunch, lunch & final bell | at each one |
 
 Delivery works two ways at once. A foreground scheduler handles the case where the app is
@@ -67,7 +72,7 @@ list of timestamps alongside the push subscription. When one comes due the Worke
 **payload-less push**: a bare poke carrying no data at all. The service worker wakes, reads
 your classes and preferences from IndexedDB, and decides what to display locally.
 
-So the server never learns your classes, teachers, rooms, grades, assignments, or even which
+So the server never learns your classes, teachers, rooms, grades, or even which
 kind of alert is firing. It knows an opaque push endpoint and some times. That is also why
 `worker/push.ts` implements only VAPID signing and no `aes128gcm` payload encryption — with no
 payload, there's nothing to encrypt.
@@ -214,21 +219,36 @@ src/
   lib/gpa.ts           weighted and unweighted GPA
   lib/notifications.ts pure planner + a one-timeout scheduler
   lib/push.ts          subscribes and uploads the alarm timestamps
+  lib/clubs.ts         when a club meets — weekly, monthly, "last Friday"
+  lib/auth.ts          Google sign-in, browser half
+  lib/sync.ts          carries the schedule between devices
   lib/liveFeed.ts      fetches /api/events, caches it, hands it to resolveDay
-  lib/idb.ts           settings mirror the service worker can read
+  lib/idb.ts           the alert plan the service worker reads
   lib/storage.ts       versioned localStorage
+  lib/resume.ts        "the app is in front of the user again" signals
   sw.ts                service worker: precache + the push handler
-  screens/             Today, Calendar, Classes, College, Settings, Onboarding
+  screens/             Today, Calendar, Classes, Clubs, College, Settings, Onboarding
 worker/
   index.ts             API, cron alarm clock, calendar cache, static assets
+  auth.ts              Google OAuth, sessions, account deletion
+  sender.ts            push fan-out, so one tick can notify more than ~45 people
   push.ts              VAPID signing in WebCrypto
 shared/
   feed.js              ICS parsing, shared by the Worker and the build script
+  html-text.js         flattens Google Calendar's HTML descriptions
+brand/
+  logo-source.png      the one image every icon is generated from
+migrations/            D1 schema
 scripts/
   sync-calendar.mjs    pulls the feed, diffs it against the verified data
   deploy.mjs           KV + secret + build + publish
-  make-qr.mjs          share QR for the deployed URL
+  make-qr.mjs          share QR for appUrl in package.json
+  make-icons.mjs       every icon, plus the alpha-only notification badge
+  stats.mjs            how many students have signed up — counts only
 ```
+
+Two Workers, so two deploys. `npm run deploy` covers the app; `npm run deploy:sender`
+is only needed when `worker/sender.ts` or `worker/push.ts` changes.
 
 `resolveDay(date)` is the function to understand first. Precedence, highest first:
 
