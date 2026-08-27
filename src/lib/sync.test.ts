@@ -35,14 +35,22 @@ describe('what syncs', () => {
     expect(out.grades).toBeUndefined();
   });
 
-  it('leaves device preferences behind', () => {
-    // Alerts on your phone but not on a school Chromebook, and a theme chosen
-    // for one screen shouldn't follow you to another.
+  it('leaves one-screen preferences behind', () => {
     const out = pickSynced(full) as Record<string, unknown>;
     expect(out.theme).toBeUndefined();
-    expect(out.notifications).toBeUndefined();
     expect(out.tourSeen).toBeUndefined();
     expect(out.installDismissed).toBeUndefined();
+  });
+
+  it('carries notification preferences', () => {
+    /*
+      Losing these loses background alerts outright: the app will not create a
+      push subscription while every toggle is off, so a reinstall on a fresh
+      origin silently ends notifications. That is what happened moving to
+      ahsbell.com.
+    */
+    expect(pickSynced(full).notifications).toEqual(full.notifications);
+    expect(touchesSchedule({ notifications: full.notifications })).toBe(true);
   });
 
   it('sends exactly these keys, so nothing joins by accident', () => {
@@ -54,6 +62,7 @@ describe('what syncs', () => {
       'customOverrides',
       'extraPeriods',
       'gradeLevel',
+      'notifications',
     ]);
   });
 

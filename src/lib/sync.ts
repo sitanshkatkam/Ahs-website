@@ -10,9 +10,16 @@ import type { Settings } from './storage';
  * What is deliberately left behind is as important as what travels. Grades stay
  * on the device that made them — they are the sensitive half, nobody needs them
  * in two places, and keeping them local is what lets the privacy page go on
- * saying they never leave your phone. Notification preferences and theme stay
- * local too, for a plainer reason: you want alerts on your phone and not on a
- * school Chromebook.
+ * saying they never leave your phone. Theme stays local too; it is a choice
+ * about one screen.
+ *
+ * Notification preferences used to stay local as well, on the theory that you
+ * want alerts on your phone and not on a school Chromebook. That was too clever.
+ * Because the app refuses to create a push subscription while every toggle is
+ * off, losing the toggles loses background alerts entirely — and reinstalling,
+ * or moving to a new domain, does exactly that, silently. A second device
+ * buzzing is a smaller problem than a student who thinks alerts are on and is
+ * getting none.
  */
 
 /** The fields that travel. Everything not listed here is device-local. */
@@ -22,6 +29,7 @@ const SYNCED_KEYS = [
   'extraPeriods',
   'customOverrides',
   'clubs',
+  'notifications',
 ] as const;
 
 export type SyncedSchedule = Pick<Settings, (typeof SYNCED_KEYS)[number]>;
@@ -42,6 +50,7 @@ export function pickSynced(settings: Settings): SyncedSchedule {
     extraPeriods: settings.extraPeriods,
     customOverrides: settings.customOverrides,
     clubs: settings.clubs,
+    notifications: settings.notifications,
   };
 }
 
