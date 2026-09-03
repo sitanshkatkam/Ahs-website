@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-02T14:31:18.549Z",
+  "generatedAt": "2026-09-03T14:36:05.212Z",
   "source": "American High School — Academics (public Google Calendar)",
   "schoolYear": "2026-08-01..2027-06-30",
   "scheduleOverrides": [
@@ -245,6 +245,12 @@
       "time": "6:00 PM"
     },
     {
+      "date": "2026-09-03",
+      "title": "PTSA Meeting - Library",
+      "category": "other",
+      "time": "6:00 PM"
+    },
+    {
       "date": "2026-09-10",
       "title": "Th. 50 - Parent Workshop: Healthier Approach to College Admissions",
       "category": "other",
@@ -274,8 +280,9 @@
     {
       "date": "2026-10-22",
       "endDate": "2026-10-23",
-      "title": "Busy",
-      "category": "other"
+      "title": "Parent-Teacher Conferences",
+      "category": "other",
+      "description": "AHS Minimum Days"
     },
     {
       "date": "2026-12-10",
